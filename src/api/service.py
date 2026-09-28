@@ -64,15 +64,23 @@ class TicketWorkflowService:
             )
             self._pending_tickets[ticket_id] = pending_item
 
+            lang = values.get("detected_language", "english")
+            if lang == "hindi":
+                review_reply = "नमस्ते, आपके अनुरोध के लिए सुपरवाइजर सत्यापन की आवश्यकता है। इसे हमारे सपोर्ट डेस्क पर भेज दिया गया है, जल्द ही समाधान मिलेगा।"
+            elif lang == "hinglish":
+                review_reply = "Hi, aapki request ke liye supervisor verification ki zaroorat hai. Humne isse support desk par forward kar diya hai, jald update milega."
+            else:
+                review_reply = "Your request requires supervisor verification and has been routed to our human support desk."
+
             return TicketResponse(
                 ticket_id=ticket_id,
                 status="needs_review",
                 decision_action=values.get("decision_action", "unknown"),
                 decision_confidence=values.get("decision_confidence", 0.0),
-                reply="Your request requires supervisor verification and has been routed to our human support desk.",
+                reply=review_reply,
                 tool_result=None,
                 gating_outcome=values.get("gating_outcome", "human_review"),
-                detected_language=values.get("detected_language", "english"),
+                detected_language=lang,
                 requires_human_review=True,
             )
 

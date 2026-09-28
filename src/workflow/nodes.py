@@ -15,8 +15,14 @@ from src.workflow.state import AgentState
 logger = logging.getLogger(__name__)
 
 HINGLISH_KEYWORDS = {
-    "kardo", "kijiye", "hai", "hain", "bhai", "mera", "meri", "humne", "nahi",
-    "paise", "rupaye", "wapas", "chahiye", "galti", "se", "ho", "gaya"
+    "kardo", "kijiye", "karo", "karein", "hai", "hain", "bhai", "bro", "yaar",
+    "mera", "meri", "mere", "humne", "hamara", "hamari", "hum", "mujhe", "mujhko",
+    "nahi", "na", "paise", "paisa", "rupaye", "rupees", "wapas", "waapas", "chahiye", "galti",
+    "se", "ho", "gaya", "gayi", "gaye", "kat", "kata", "cut", "de", "do", "dijiye",
+    "rok", "roko", "band", "khol", "kholo", "chal", "rha", "raha", "rahi", "rahe",
+    "tha", "thi", "the", "kya", "kyu", "kyun", "kaise", "kaisa", "kab", "abhi",
+    "turant", "jaldi", "aap", "aapka", "aapki", "aapke", "login", "batayein", "batao",
+    "madad", "dikkat", "par", "pe", "ko", "aur", "bhi", "sir", "mam"
 }
 
 
@@ -206,34 +212,35 @@ async def _generate_live_reply(
             for p in policies[:2]
         ]) or "Standard SaaS 14-day refund and subscription SLA applies."
 
-        lang_instruction = {
-            "hindi": "Respond fluently and respectfully in Hindi (Devanagari script).",
-            "hinglish": "Respond naturally in conversational Hinglish (Latin script code-mixed Hindi & English, like 'Hi, humne aapka request process kar diya hai...').",
-            "english": "Respond professionally and empathetically in English.",
-        }.get(language, "Respond in the customer's native language and tone.")
+        system_prompt = (
+            "You are an empathetic, expert customer support assistant for a SaaS platform.\n"
+            "CRITICAL MANDATORY LANGUAGE RULE:\n"
+            "You MUST reply in the EXACT same language, script, and dialect that the customer used in their message!\n"
+            "- If the customer writes in Hinglish (code-mixed Hindi/Urdu written in Latin/Roman alphabet, e.g. 'mera refund kar do', 'paise wapas chahiye', 'bhai plan cancel karo'), you MUST reply in natural conversational Hinglish in Latin script.\n"
+            "- If the customer writes in Hindi (Devanagari script), you MUST reply in fluent Hindi (Devanagari script).\n"
+            "- If the customer writes in English, reply in English.\n"
+            "- If the customer writes in another language, reply in that language.\n"
+            "- NEVER default to English if the customer asked in Hinglish or Hindi!"
+        )
 
         prompt = (
             f"Customer Message: \"{text}\"\n"
             f"Determined Action: {action}\n"
             f"Amount: {f'${amount:.2f}' if amount else 'N/A'}\n"
             f"Retrieved Company Policy:\n{policy_context}\n\n"
-            f"Tone Directive: {lang_instruction}\n\n"
-            "Rules:\n"
-            "1. Directly address their specific situation without generic robotic fillers.\n"
-            "2. State clearly what action is taken (e.g. refund initiated, cancellation confirmed, or team escalated).\n"
-            "3. Mention realistic timelines (e.g. 3-5 business days for bank settlement).\n"
-            "4. Keep it concise (2-4 sentences max).\n\n"
+            f"STRICT INSTRUCTION: Respond in the EXACT same language and tone as the customer's message. "
+            f"If the customer wrote in Hinglish, reply in Hinglish. Address their problem directly in 2-3 concise sentences.\n\n"
             "Final Response:"
         )
 
         resp = await acompletion(
             model=settings.GROQ_MODEL,
             messages=[
-                {"role": "system", "content": "You are an expert customer support agent for a SaaS platform. Write warm, accurate, and direct responses mirroring the customer's tone."},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
             api_key=settings.GROQ_API_KEY,
-            temperature=0.3,
+            temperature=0.2,
             max_tokens=250,
         )
         content = resp.choices[0].message.content
