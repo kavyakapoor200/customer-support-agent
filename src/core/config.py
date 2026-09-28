@@ -13,7 +13,7 @@ class Settings(BaseSettings):
 
     # Cognition & Inference
     DECISION_ENGINE_BACKEND: Literal["mock", "kev", "jev", "groq"] = "mock"
-    KEV_ENDPOINT_URL: str = "http://localhost:11434"
+    KEV_ENDPOINT_URL: str = "http://localhost:8008"
     JEV_ENDPOINT_URL: str = "https://api.typesafe.com/v1/systemone"
     JEV_API_KEY: str | None = None
     GROQ_API_KEY: str = ""

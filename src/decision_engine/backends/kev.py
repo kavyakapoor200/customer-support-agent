@@ -18,7 +18,7 @@ class KevDecisionEngine(BaseDecisionEngine):
         self,
         endpoint_url: str | None = None,
         fallback_to_mock: bool = True,
-        timeout: float = 3.0,
+        timeout: float = 10.0,
     ) -> None:
         super().__init__(engine_name="kev")
         self.endpoint_url = endpoint_url or get_settings().KEV_ENDPOINT_URL
@@ -28,9 +28,29 @@ class KevDecisionEngine(BaseDecisionEngine):
 
     async def decide(self, text: str, candidate_actions: list[str]) -> DecisionOutput:
         start_time = time.perf_counter()
+        criteria_descriptions = {
+            "refund": "Requesting a refund, reimbursement, or charge reversal",
+            "cancel_subscription": "Requesting to cancel subscription, membership, or renewal",
+            "billing_dispute": "Reporting an unauthorized charge, fraud, or billing discrepancy",
+            "account_escalation": "Urgent blocker, account locked out, SSO/SAML failure, or security breach",
+            "general_inquiry": "General question, documentation, feature inquiry, or contact support",
+        }
+        criteria = {
+            act: criteria_descriptions.get(act, f"Customer request regarding {act.replace('_', ' ')}")
+            for act in candidate_actions
+        }
+
+        # TypeSafe & Kev-0.8B /v1/systemone API contract
         payload = {
-            "text": text,
-            "options": candidate_actions,
+            "model": "kev-latest",
+            "state": text,
+            "questions": {
+                "action": {
+                    "type": "choice",
+                    "instructions": "Which customer support action best resolves this customer query?",
+                    "criteria": criteria,
+                }
+            },
         }
 
         try:
@@ -44,9 +64,17 @@ class KevDecisionEngine(BaseDecisionEngine):
 
             latency = (time.perf_counter() - start_time) * 1000.0
 
-            action = data.get("action") or candidate_actions[0]
-            confidence = float(data.get("confidence", 0.0))
-            probabilities = data.get("probabilities") or {a: 1.0 / len(candidate_actions) for a in candidate_actions}
+            # Parse TypeSafe/Kev structured answer
+            answers = data.get("answers", {})
+            action_choice = answers.get("action", {})
+            if isinstance(action_choice, dict) and "choice" in action_choice:
+                action = action_choice["choice"]
+                probabilities = action_choice.get("probabilities") or {a: 1.0 / len(candidate_actions) for a in candidate_actions}
+                confidence = float(probabilities.get(action, action_choice.get("confidence", 0.0)))
+            else:
+                action = data.get("action") or candidate_actions[0]
+                confidence = float(data.get("confidence", 0.0))
+                probabilities = data.get("probabilities") or {a: 1.0 / len(candidate_actions) for a in candidate_actions}
 
             return DecisionOutput(
                 action=action,

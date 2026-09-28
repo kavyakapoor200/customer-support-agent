@@ -25,6 +25,7 @@ class TicketResponse(BaseModel):
     gating_outcome: str
     detected_language: str
     requires_human_review: bool
+    trajectory: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ReviewActionRequest(BaseModel):

@@ -82,6 +82,7 @@ class TicketWorkflowService:
                 gating_outcome=values.get("gating_outcome", "human_review"),
                 detected_language=lang,
                 requires_human_review=True,
+                trajectory=values.get("trajectory", []),
             )
 
         # Completed automatically without interrupt
@@ -95,6 +96,7 @@ class TicketWorkflowService:
             gating_outcome=values.get("gating_outcome", "auto_execute"),
             detected_language=values.get("detected_language", "english"),
             requires_human_review=False,
+            trajectory=values.get("trajectory", []),
         )
 
     async def list_pending(self) -> list[PendingTicketItem]:
@@ -129,6 +131,7 @@ class TicketWorkflowService:
             gating_outcome=values.get("gating_outcome", "human_review"),
             detected_language=values.get("detected_language", "english"),
             requires_human_review=False,
+            trajectory=values.get("trajectory", []),
         )
 
 
