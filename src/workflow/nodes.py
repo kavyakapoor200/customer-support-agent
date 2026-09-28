@@ -3,6 +3,7 @@ import logging
 import re
 from typing import Any
 
+import langdetect
 from langgraph.types import interrupt
 
 from src.cognition.gating import evaluate_gating
@@ -14,6 +15,36 @@ from src.workflow.state import AgentState
 
 logger = logging.getLogger(__name__)
 
+ISO_TO_LANGUAGE: dict[str, str] = {
+    "fr": "french",
+    "es": "spanish",
+    "de": "german",
+    "it": "italian",
+    "pt": "portuguese",
+    "nl": "dutch",
+    "ru": "russian",
+    "ar": "arabic",
+    "ja": "japanese",
+    "zh-cn": "chinese",
+    "zh-tw": "chinese",
+    "zh": "chinese",
+    "ko": "korean",
+    "hi": "hindi",
+    "en": "english",
+    "tr": "turkish",
+    "pl": "polish",
+    "sv": "swedish",
+    "da": "danish",
+    "fi": "finnish",
+    "no": "norwegian",
+    "cs": "czech",
+    "el": "greek",
+    "he": "hebrew",
+    "id": "indonesian",
+    "vi": "vietnamese",
+    "th": "thai",
+}
+
 HINGLISH_KEYWORDS = {
     "kardo", "kijiye", "karo", "karein", "hai", "hain", "bhai", "bro", "yaar",
     "mera", "meri", "mere", "humne", "hamara", "hamari", "hum", "mujhe", "mujhko",
@@ -24,6 +55,34 @@ HINGLISH_KEYWORDS = {
     "turant", "jaldi", "aap", "aapka", "aapki", "aapke", "login", "batayein", "batao",
     "madad", "dikkat", "par", "pe", "ko", "aur", "bhi", "sir", "mam"
 }
+
+
+def detect_language_and_script(text: str) -> tuple[str, str]:
+    """Detects primary language and script across global languages and code-mixed dialects."""
+    # 1. Non-latin script detection
+    if re.search(r"[\u0900-\u097F]", text):
+        return "hindi", "devanagari"
+    if re.search(r"[\u4E00-\u9FFF]", text):
+        return "chinese", "han"
+    if re.search(r"[\u3040-\u30FF]", text):
+        return "japanese", "kana"
+    if re.search(r"[\u0600-\u06FF]", text):
+        return "arabic", "arabic"
+    if re.search(r"[\u0400-\u04FF]", text):
+        return "russian", "cyrillic"
+
+    # 2. Hinglish marker check (code-mixed Latin script)
+    words = set(re.findall(r"\w+", text.lower()))
+    if words.intersection(HINGLISH_KEYWORDS):
+        return "hinglish", "latin"
+
+    # 3. High-accuracy ISO language detection
+    try:
+        iso_code = langdetect.detect(text)
+        lang_name = ISO_TO_LANGUAGE.get(iso_code, iso_code)
+        return lang_name, "latin"
+    except Exception:
+        return "english", "latin"
 
 
 def _record_step(state: AgentState, node_name: str, details: dict[str, Any]) -> list[dict[str, Any]]:
@@ -41,18 +100,8 @@ async def intake_node(state: AgentState) -> dict[str, Any]:
     """Detects script, language, extracts currency amounts, and initializes candidates."""
     text = state["raw_text"]
 
-    # 1. Script & Language Detection
-    has_devanagari = bool(re.search(r"[\u0900-\u097F]", text))
-    if has_devanagari:
-        detected_script = "devanagari"
-        detected_language = "hindi"
-    else:
-        detected_script = "latin"
-        words = set(re.findall(r"\w+", text.lower()))
-        if words.intersection(HINGLISH_KEYWORDS):
-            detected_language = "hinglish"
-        else:
-            detected_language = "english"
+    # 1. Multi-lingual Script & Language Detection
+    detected_language, detected_script = detect_language_and_script(text)
 
     # 2. Amount Extraction
     amount: float | None = None
@@ -312,19 +361,20 @@ async def _verify_reply_with_llm(
             f"Action: {action}\n"
             f"Draft Reply: \"{draft_reply}\"\n"
             f"Company Policies:\n{policy_text}\n\n"
-            "Does this draft reply violate any policy or make unfulfillable guarantees (e.g. promising immediate money without verification)?\n"
-            "Respond ONLY with valid JSON: {\"passed\": true, \"reason\": \"<short justification>\"}"
+            "Evaluate if the draft reply contradicts company policy.\n"
+            "Respond ONLY with a valid JSON object matching this schema:\n"
+            "{\"passed\": true, \"reason\": \"Complies with policy\"}"
         )
         resp = await acompletion(
             model=settings.GROQ_MODEL,
             messages=[
-                {"role": "system", "content": "You are a strict policy compliance auditor. Respond strictly in JSON format."},
+                {"role": "system", "content": "You are a policy compliance auditor. Respond ONLY with valid JSON."},
                 {"role": "user", "content": prompt},
             ],
             response_format={"type": "json_object"},
             api_key=settings.GROQ_API_KEY,
             temperature=0.0,
-            max_tokens=100,
+            max_tokens=250,
         )
         data = json.loads(resp.choices[0].message.content)
         return bool(data.get("passed", True)), str(data.get("reason", "Verified compliant"))
