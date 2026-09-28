@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-eval:
+    name: Lint, Test & Quality Gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Install Dependencies
+        run: uv sync --extra dev
+
+      - name: Lint Code with Ruff
+        run: uv run ruff check .
+
+      - name: Run Test Suite & Quality Gates
+        env:
+          DECISION_ENGINE_BACKEND: mock
+          APP_ENV: testing
+        run: |
+          uv run pytest tests/ eval/ -v --tb=short

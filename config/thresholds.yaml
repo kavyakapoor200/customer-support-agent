@@ -1,0 +1,45 @@
+version: "1.0"
+
+# Global fallback defaults
+defaults:
+  auto_execute_threshold: 0.90
+  max_auto_amount_usd: 50.00
+  review_threshold: 0.60
+  deny_threshold: 0.60
+
+# Per-action deterministic gating rules ("Model scores, code decides")
+policies:
+  refund:
+    auto_execute_threshold: 0.90
+    max_auto_amount_usd: 50.00
+    review_threshold: 0.60
+    deny_threshold: 0.60
+    p0_always_review: false
+
+  cancel_subscription:
+    auto_execute_threshold: 0.85
+    max_auto_amount_usd: 0.00 # N/A for cancellations
+    review_threshold: 0.60
+    deny_threshold: 0.60
+    p0_always_review: false
+
+  billing_dispute:
+    auto_execute_threshold: 0.95
+    max_auto_amount_usd: 30.00
+    review_threshold: 0.50
+    deny_threshold: 0.50
+    p0_always_review: false
+
+  account_escalation:
+    auto_execute_threshold: 0.95
+    max_auto_amount_usd: 0.00
+    review_threshold: 0.70
+    deny_threshold: 0.70
+    p0_always_review: true # Security / SSO lockouts require human confirmation
+
+  general_inquiry:
+    auto_execute_threshold: 0.80
+    max_auto_amount_usd: 0.00
+    review_threshold: 0.50
+    deny_threshold: 0.50
+    p0_always_review: false

@@ -1,0 +1,1002 @@
+[
+  {
+    "ticket_id": "TK-EN-001",
+    "text": "I was charged twice on my card, duplicate accidental renewal charge, please refund my money back for $45",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 45.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-002",
+    "text": "Please issue a refund for this accidental annual renewal, amount is $39.00",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 39.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-003",
+    "text": "I made an accidental in-app upgrade, request money back reimbursement for $25.00 within 14 days",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 25.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-004",
+    "text": "Duplicate billing occurred on my account yesterday, please refund the second charge of $15.00",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 15.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-005",
+    "text": "Double charge noticed on my invoice, please refund $48.50 immediately",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 48.5,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-006",
+    "text": "Please refund my corporate account $180 for annual license dispute",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 180.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-007",
+    "text": "I need a full refund for $350 annual plan charge from 3 days ago",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 350.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-008",
+    "text": "Refund requested for $79 charge on Pro tier",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 79.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-009",
+    "text": "Accidental subscription renewal of $120, requesting refund",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 120.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-010",
+    "text": "Please refund $49.99 subscription fee charged this morning",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 49.99,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-011",
+    "text": "I was wrongly billed twice, please reimburse $30 chargeback",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 30.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-012",
+    "text": "Requesting refund of $500 for enterprise seat addition",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 500.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-013",
+    "text": "Please cancel my subscription before next billing cycle.",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-014",
+    "text": "I want to unsubscribe and terminate my membership immediately.",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-015",
+    "text": "Kindly stop auto renewal on my Pro workspace plan.",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-016",
+    "text": "Cancel our monthly subscription effective at the end of the billing period.",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-017",
+    "text": "Please terminate my team account, we are migrating elsewhere.",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-018",
+    "text": "I need to cancel my paid plan and downgrade to free tier.",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-019",
+    "text": "Unsubscribe me from all recurring charges and terminate subscription.",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-020",
+    "text": "How do I cancel my subscription? Please do it for me.",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-021",
+    "text": "Please stop renewal on my annual enterprise license.",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-022",
+    "text": "Terminate subscription immediately and confirm cancellation date.",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-023",
+    "text": "Unauthorized charge appeared on my card, this is fraudulent activity.",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 65.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-024",
+    "text": "I never authorized this $65 charge, someone used my stolen card.",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 65.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-025",
+    "text": "This is an unknown dispute charge from your company on my bank statement.",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 65.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-026",
+    "text": "Fraud alert: unauthorized transaction on my credit card for $120.",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 65.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-027",
+    "text": "I was overbilled and overcharged $80 on my monthly invoice without notice.",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 65.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-028",
+    "text": "Unauthorized debit on my Visa card, I never bought this product.",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 65.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-029",
+    "text": "Someone hacked my account and made unauthorized charges, please dispute.",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 65.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-030",
+    "text": "My corporate credit card was charged for seats we never added, dispute charge.",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 65.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-031",
+    "text": "Unauthorized subscription fee of $99, I demand an investigation.",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 65.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-032",
+    "text": "Dispute: I was charged despite cancelling two months ago, unauthorized.",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 65.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-EN-033",
+    "text": "URGENT: Entire engineering team locked out of Okta SSO right now, P0 blocker.",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-EN-034",
+    "text": "Security breach: compromised admin API keys detected in our workspace.",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-EN-035",
+    "text": "All our developers cannot login due to SAML authentication failure.",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-EN-036",
+    "text": "Emergency: Two-factor authentication lockout on CEO account.",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-EN-037",
+    "text": "P0 Incident: Single sign-on down across the whole company domain.",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-EN-038",
+    "text": "Urgent security alert: unauthorized login detected from suspicious IP address.",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-EN-039",
+    "text": "Our workspace admin account is locked and production deployments are blocked.",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-EN-040",
+    "text": "P0 blocker: SSO integration throwing 500 errors for all employees.",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-EN-041",
+    "text": "Security emergency: suspect our OAuth token was leaked publicly.",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-EN-042",
+    "text": "Immediate help needed: enterprise domain lockout affecting 500 users.",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-EN-043",
+    "text": "Where can I find documentation on webhook API rate limits?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-044",
+    "text": "How do I invite team members to our workspace?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-045",
+    "text": "What are the pricing differences between Pro and Enterprise tiers?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-046",
+    "text": "Do you support exporting billing invoices as PDF?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-047",
+    "text": "Can I change the billing currency from USD to EUR?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-048",
+    "text": "Where can I find the API documentation guide for Python SDK?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-049",
+    "text": "Is there an uptime status page for your cloud platform?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-EN-050",
+    "text": "How do I update the credit card on file for our account?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-051",
+    "text": "Mera renewal galti se ho gaya kal, $35 charge hua hai, refund kardo bhai please.",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 35.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-052",
+    "text": "Bhai do baar charge cut gaya account se, duplicate charge ka refund kardo $20.",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 20.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-053",
+    "text": "Galti se annual plan buy kar liya, paise wapas chahiye $40 refund kijiye.",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 40.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-054",
+    "text": "Mujhe service pasand nahi aayi, 14 days ke andar $15 refund maang raha hoon.",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 15.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-055",
+    "text": "Accidental payment charge ho gaya card se, please refund kardo $49.",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 49.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-056",
+    "text": "Mera yearly renewal charge $180 ho gaya, please supervisor se refund approve karvao.",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 180.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-057",
+    "text": "Bhai $120 ka galat renewal kat gaya, refund chahiye urgent.",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 120.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-058",
+    "text": "Galti se Pro plan renew ho gaya $75 ka, paise wapas kar do.",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 75.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-059",
+    "text": "Mera $250 ka enterprise charge refund kardo galti se team member ne add kiya.",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 250.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-060",
+    "text": "Account se $30 refund kardo duplicate deduction hua hai.",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 30.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-061",
+    "text": "Mera yearly plan cancel kardo bhai, auto debit nahi chahiye.",
+    "language": "hinglish",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-062",
+    "text": "Subscription band kardo please, next month se renew mat karna.",
+    "language": "hinglish",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-063",
+    "text": "Humari membership terminate kardo, ab use nahi karte.",
+    "language": "hinglish",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-064",
+    "text": "Auto renewal off kardo aur subscription cancel kijiye.",
+    "language": "hinglish",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-065",
+    "text": "Bhai please mera plan cancel kar do end of month tak.",
+    "language": "hinglish",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-066",
+    "text": "Mujhe subscription hata do, service discontinue karni hai.",
+    "language": "hinglish",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-067",
+    "text": "Pro plan unsubscribe kardo, billing stop karo.",
+    "language": "hinglish",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-068",
+    "text": "Subscription cancel kardo bhai jaldi.",
+    "language": "hinglish",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-069",
+    "text": "Mera card se unauthorized $60 kat gaya, fraud charge dispute karo.",
+    "language": "hinglish",
+    "expected_action": "billing_dispute",
+    "amount_usd": 60.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-070",
+    "text": "Maine ye purchase nahi kiya, unknown charge dispute kardo.",
+    "language": "hinglish",
+    "expected_action": "billing_dispute",
+    "amount_usd": 45.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-071",
+    "text": "Stolen card se unauthorized transaction hua hai $90 ka.",
+    "language": "hinglish",
+    "expected_action": "billing_dispute",
+    "amount_usd": 90.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-072",
+    "text": "Galat charge lagaya hai bill pe, unauthorized payment dispute.",
+    "language": "hinglish",
+    "expected_action": "billing_dispute",
+    "amount_usd": 70.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-073",
+    "text": "Bhai ye payment maine authorize nahi kiya, fraud transaction hai.",
+    "language": "hinglish",
+    "expected_action": "billing_dispute",
+    "amount_usd": 85.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-074",
+    "text": "Card hacked lag raha hai, unauthorized deduction dispute.",
+    "language": "hinglish",
+    "expected_action": "billing_dispute",
+    "amount_usd": 110.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-075",
+    "text": "Overbilled amount dispute: bina bataye extra charge kar diya.",
+    "language": "hinglish",
+    "expected_action": "billing_dispute",
+    "amount_usd": 50.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-HI-076",
+    "text": "URGENT P0: Poori team Okta SSO se lock ho gayi hai, login nahi ho raha.",
+    "language": "hinglish",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-HI-077",
+    "text": "Emergency security issue: admin account compromised ho gaya hai.",
+    "language": "hinglish",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-HI-078",
+    "text": "P0 blocker bhai: SAML SSO fail ho raha hai poore office ka.",
+    "language": "hinglish",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-HI-079",
+    "text": "Two-factor authentication locked out, login failed urgent help.",
+    "language": "hinglish",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-HI-080",
+    "text": "Critical P0: Organization domain lockout ho gaya sabka.",
+    "language": "hinglish",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-HI-081",
+    "text": "Pricing aur features ka details kahan milega bhai?",
+    "language": "hinglish",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-082",
+    "text": "API documentation ka link bhej do please.",
+    "language": "hinglish",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-083",
+    "text": "Invoice PDF download kaise karein?",
+    "language": "hinglish",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-084",
+    "text": "Workspace mein new team members ko invite kaise karte hain?",
+    "language": "hinglish",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-HI-085",
+    "text": "Payment method credit card change kaise karein?",
+    "language": "hinglish",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-DEV-086",
+    "text": "कृपया मेरा रिफंड प्रोसेस करें, $40 की डुप्लीकेट कटौती हुई है।",
+    "language": "hindi",
+    "expected_action": "refund",
+    "amount_usd": 40.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-DEV-087",
+    "text": "गलती से वार्षिक योजना का नवीनीकरण हो गया, कृपया $45 का रिफंड दें।",
+    "language": "hindi",
+    "expected_action": "refund",
+    "amount_usd": 45.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-DEV-088",
+    "text": "कृपया मेरे खाते में $150 का रिफंड प्रोसेस करें।",
+    "language": "hindi",
+    "expected_action": "refund",
+    "amount_usd": 150.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-DEV-089",
+    "text": "दो बार पैसे कट गए हैं, कृपया तुरंत रिफंड प्रदान करें।",
+    "language": "hindi",
+    "expected_action": "refund",
+    "amount_usd": 30.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-DEV-090",
+    "text": "कृपया मेरा सब्सक्रिप्शन तुरंत रद्द करें और सेवा समाप्त करें।",
+    "language": "hindi",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-DEV-091",
+    "text": "बिलिंग चक्र के अंत में सदस्यता समाप्त करने का अनुरोध करता हूँ।",
+    "language": "hindi",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-DEV-092",
+    "text": "हमारा प्लान रद्द करें, आगे कोई शुल्क न काटें।",
+    "language": "hindi",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-DEV-093",
+    "text": "ऑटो नवीनीकरण बंद करें और सब्सक्रिप्शन रद्द करें।",
+    "language": "hindi",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-DEV-094",
+    "text": "यह अनाधिकृत लेनदेन है, मैंने यह खरीद नहीं की, विवाद दर्ज करें।",
+    "language": "hindi",
+    "expected_action": "billing_dispute",
+    "amount_usd": 75.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-DEV-095",
+    "text": "धोखाधड़ी: मेरे क्रेडिट कार्ड से अनधिकृत कटौती हुई है।",
+    "language": "hindi",
+    "expected_action": "billing_dispute",
+    "amount_usd": 120.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-DEV-096",
+    "text": "अज्ञात शुल्क का विवाद दर्ज करें और जांच करें।",
+    "language": "hindi",
+    "expected_action": "billing_dispute",
+    "amount_usd": 50.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "TK-DEV-097",
+    "text": "अति आवश्यक P0: हमारी पूरी कंपनी Okta SSO से बाहर हो गई है।",
+    "language": "hindi",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-DEV-098",
+    "text": "सुरक्षा आपातकाल: एडमिन खाता लॉक हो गया है, तुरंत सहायता दें।",
+    "language": "hindi",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "03_security_escalation"
+  },
+  {
+    "ticket_id": "TK-DEV-099",
+    "text": "एपीआई प्रलेखन (Documentation) कहाँ उपलब्ध है?",
+    "language": "hindi",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  },
+  {
+    "ticket_id": "TK-DEV-100",
+    "text": "योजनाओं के मूल्य और सुविधाओं की जानकारी चाहिए।",
+    "language": "hindi",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_subscription_cancellation"
+  }
+]

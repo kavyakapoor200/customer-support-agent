@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: support_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: customer_support
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d customer_support"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: support_qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/6333'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: support_jaeger
+    restart: unless-stopped
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686" # Web UI
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+
+volumes:
+  postgres_data:
+  qdrant_data:
+
+networks:
+  default:
+    name: support_network
