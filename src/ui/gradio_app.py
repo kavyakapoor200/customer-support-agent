@@ -1,18 +1,65 @@
+import datetime
 from typing import Any
 
 import gradio as gr
+import httpx
 
 from src.api.models import ReviewActionRequest, TicketIntakeRequest
 from src.api.service import workflow_service
+from src.core.config import get_settings
 
 
 def create_gradio_ui() -> gr.Blocks:
-    """Builds the dual-tab Gradio web interface."""
+    """Builds the dual-tab Gradio web interface with webhook diagnostics."""
     with gr.Blocks(title="Customer Support Agent Portal") as demo:
         gr.Markdown(
             "# 🛡️ Customer Support AI Agent\n"
-            "**System 1 Gated Decision Engine · LangGraph Human-in-the-Loop Supervision · Qdrant Policy Grounding**"
+            "**System 1 Gated Decision Engine · LangGraph Human-in-the-Loop Supervision · Real-Time Webhook Alerting**"
         )
+
+        # ======================================================================
+        # Webhook Connection & Test Bar
+        # ======================================================================
+        settings = get_settings()
+        webhook_target = settings.SLACK_WEBHOOK_URL or "Not Configured (simulated in console)"
+        with gr.Accordion("🔔 Webhook Live Diagnostics", open=True):
+            with gr.Row():
+                gr.Markdown(f"**Target Webhook URL:** `{webhook_target}`")
+                btn_test_ping = gr.Button("🚀 Send Test Alert to Webhook Now", size="sm", variant="secondary")
+            webhook_ping_result = gr.Markdown("")
+
+            async def handle_test_ping():
+                cfg = get_settings()
+                if not cfg.SLACK_WEBHOOK_URL:
+                    return "⚠️ **SLACK_WEBHOOK_URL** is not set in `.env`!"
+                try:
+                    now_str = datetime.datetime.now(datetime.UTC).strftime("%H:%M:%S UTC")
+                    payload = {
+                        "text": f"🚨 *Manual Test Alert from Support Portal* ({now_str})",
+                        "blocks": [
+                            {
+                                "type": "header",
+                                "text": {"type": "plain_text", "text": "🔔 Webhook Verification Ping"}
+                            },
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": f"✅ *Webhook is LIVE & CONNECTED!*\n*Time:* `{now_str}`\n*Target:* `{cfg.SLACK_WEBHOOK_URL}`\n*Status:* System ready to receive P0 and Human Review escalations."
+                                }
+                            }
+                        ]
+                    }
+                    async with httpx.AsyncClient(timeout=4.0) as client:
+                        resp = await client.post(cfg.SLACK_WEBHOOK_URL, json=payload)
+                        if resp.is_success:
+                            return f"✅ **SUCCESS! HTTP {resp.status_code} sent to Webhook at {now_str}!** Check your webhook.site dashboard!"
+                        else:
+                            return f"❌ Webhook responded with error HTTP {resp.status_code}: {resp.text}"
+                except Exception as exc:
+                    return f"❌ Webhook network failure: {exc}"
+
+            btn_test_ping.click(handle_test_ping, outputs=[webhook_ping_result])
 
         with gr.Tabs():
             # ==================================================================
@@ -34,14 +81,14 @@ def create_gradio_ui() -> gr.Blocks:
 
                         gr.Markdown("#### Quick Test Scenarios")
                         with gr.Row():
-                            btn_scen_auto = gr.Button("💰 Refund $35 (Hinglish)", size="sm")
-                            btn_scen_cancel = gr.Button("❌ Cancel Plan (English)", size="sm")
+                            btn_scen_auto = gr.Button("💰 Refund $35 (Auto)", size="sm")
+                            btn_scen_cancel = gr.Button("❌ Cancel Plan", size="sm")
                             btn_scen_high = gr.Button("⚠️ Overcharge $180 (Needs Review)", size="sm")
-                            btn_scen_p0 = gr.Button("🚨 SSO Lockout (P0 Security)", size="sm")
+                            btn_scen_p0 = gr.Button("🚨 SSO Lockout (P0 Webhook Alert)", size="sm")
 
                     with gr.Column(scale=2):
                         out_status = gr.Markdown("### Status\n*No ticket submitted yet.*")
-                        out_reply = gr.Textbox(label="Agent Response", lines=4, interactive=False)
+                        out_reply = gr.Textbox(label="Agent Response (Dynamic AI)", lines=4, interactive=False)
                         out_details = gr.JSON(label="Execution Details")
 
                 async def handle_submit(text: str):
@@ -51,9 +98,9 @@ def create_gradio_ui() -> gr.Blocks:
                     res = await workflow_service.intake_ticket(req)
 
                     badge = (
-                        "<span class='badge-review'>⚠️ ESCALATED TO HUMAN REVIEW DESK</span>"
+                        "<span class='badge-review' style='color:#e67e22; font-weight:bold;'>⚠️ ROUTED TO AGENT REVIEW DESK (Webhook Alert Paged)</span>"
                         if res.requires_human_review
-                        else "<span class='badge-auto'>✅ AUTO-RESOLVED</span>"
+                        else "<span class='badge-auto' style='color:#27ae60; font-weight:bold;'>✅ AUTO-RESOLVED</span>"
                     )
 
                     status_md = (
@@ -73,7 +120,7 @@ def create_gradio_ui() -> gr.Blocks:
                 btn_scen_auto.click(lambda: "Mera renewal galti se ho gaya kal, $35 charge hua hai, refund kardo bhai please.", outputs=[user_input])
                 btn_scen_cancel.click(lambda: "I want to cancel my subscription at the end of the billing cycle.", outputs=[user_input])
                 btn_scen_high.click(lambda: "I was charged $180 unexpectedly for a team plan. Reverse this charge.", outputs=[user_input])
-                btn_scen_p0.click(lambda: "URGENT! Entire engineering team locked out of Okta SSO right now. P0 blocker.", outputs=[user_input])
+                btn_scen_p0.click(lambda: "URGENT! Entire engineering team locked out of Okta SSO right now. P0 security blocker.", outputs=[user_input])
 
             # ==================================================================
             # Tab 2: Agent Review Desk (Human-In-The-Loop)
@@ -92,7 +139,7 @@ def create_gradio_ui() -> gr.Blocks:
                     rev_notes = gr.Textbox(label="Reviewer Justification Notes", placeholder="e.g. Approved exception after reviewing payment receipt.")
 
                     with gr.Row():
-                        btn_approve = gr.Button("✅ Approve & Execute Action", variant="primary")
+                        btn_approve = gr.Button("✅ Approve & Execute Action (Dispatches Tool & Webhook)", variant="primary")
                         btn_reject = gr.Button("❌ Reject & Deny Request", variant="stop")
 
                     rev_result = gr.Markdown("")
@@ -139,19 +186,38 @@ def create_gradio_ui() -> gr.Blocks:
 
                     res = await workflow_service.review_ticket(item.ticket_id, rev_req)
                     verdict_str = "APPROVED & EXECUTED" if approved else "REJECTED & DENIED"
-                    return f"### ✅ Verdict [{verdict_str}] Recorded for Ticket `{item.ticket_id}`\nAction: `{res.decision_action}` | Result: `{res.tool_result.get('status') if res.tool_result else 'DENIED'}`"
+
+                    slack_info = "N/A"
+                    if res.tool_result and isinstance(res.tool_result, dict):
+                        data = res.tool_result.get("data", {})
+                        if isinstance(data, dict):
+                            slack_info = data.get("slack_alert", "SENT")
+
+                    return (
+                        f"### ✅ Verdict [{verdict_str}] Recorded for Ticket `{item.ticket_id}`\n"
+                        f"* **Action:** `{res.decision_action}`\n"
+                        f"* **Tool Status:** `{res.tool_result.get('status') if res.tool_result else 'DENIED'}`\n"
+                        f"* **Webhook Dispatch:** `{slack_info}`\n"
+                        f"* **Final Reply:** \"{res.reply}\""
+                    )
+
+                async def handle_approve_click(sel: str, draft: str, notes: str):
+                    return await process_human_verdict(sel, draft, notes, approved=True)
+
+                async def handle_reject_click(sel: str, draft: str, notes: str):
+                    return await process_human_verdict(sel, draft, notes, approved=False)
 
                 btn_refresh.click(refresh_queue, outputs=[pending_dropdown])
                 pending_dropdown.change(inspect_ticket, inputs=[pending_dropdown], outputs=[rev_info, rev_draft, rev_notes])
                 btn_approve.click(
-                    lambda sel, draft, notes: process_human_verdict(sel, draft, notes, approved=True),
+                    handle_approve_click,
                     inputs=[pending_dropdown, rev_draft, rev_notes],
-                    outputs=[rev_result]
+                    outputs=[rev_result],
                 )
                 btn_reject.click(
-                    lambda sel, draft, notes: process_human_verdict(sel, draft, notes, approved=False),
+                    handle_reject_click,
                     inputs=[pending_dropdown, rev_draft, rev_notes],
-                    outputs=[rev_result]
+                    outputs=[rev_result],
                 )
 
         return demo

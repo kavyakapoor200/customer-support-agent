@@ -136,6 +136,39 @@ async def gate_node(state: AgentState) -> dict[str, Any]:
         amount_usd=state["extracted_amount"],
     )
 
+    # Immediately alert on-call / supervisor channel via webhook if ticket paused for review
+    settings = get_settings()
+    if gating.requires_human and settings.SLACK_WEBHOOK_URL:
+        try:
+            import httpx
+
+            review_payload = {
+                "text": f"⚠️ *Ticket #{state['ticket_id']} Requires Human Review* — Action: `{state['decision_action']}`",
+                "blocks": [
+                    {
+                        "type": "header",
+                        "text": {"type": "plain_text", "text": "⚠️ Supervisor Review Needed"}
+                    },
+                    {
+                        "type": "section",
+                        "fields": [
+                            {"type": "mrkdwn", "text": f"*Ticket ID:*\n{state['ticket_id']}"},
+                            {"type": "mrkdwn", "text": f"*Action:*\n{state['decision_action']} ({state['decision_confidence']:.2f})"},
+                            {"type": "mrkdwn", "text": f"*Amount:*\n${state['extracted_amount']:.2f}" if state.get("extracted_amount") else "*Amount:*\nN/A"},
+                            {"type": "mrkdwn", "text": f"*Trigger:*\n{gating.rationale}"}
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "text": {"type": "mrkdwn", "text": f"*Customer Query:*\n> \"{state['raw_text']}\""}
+                    }
+                ]
+            }
+            with httpx.Client(timeout=2.0) as client:
+                client.post(settings.SLACK_WEBHOOK_URL, json=review_payload)
+        except Exception as exc:
+            logger.warning("Failed to dispatch review alert webhook (%s).", exc)
+
     new_traj = _record_step(
         state,
         "gate_node",
