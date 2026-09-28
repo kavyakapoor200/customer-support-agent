@@ -4,6 +4,7 @@ from typing import Any
 
 import gradio as gr
 from fastapi import FastAPI, HTTPException, status
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from src.api.models import (
     PendingTicketItem,
@@ -13,16 +14,18 @@ from src.api.models import (
 )
 from src.api.service import workflow_service
 from src.core.config import get_settings
+from src.telemetry.tracer import init_telemetry
 from src.ui.gradio_app import create_gradio_ui
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown lifecycle."""
-    # Ensure Qdrant policies are ingested on startup
-    from src.kb.store import PolicyStore
+    init_telemetry()
+    # Ingest markdown policies into PolicyStore
     try:
-        store = PolicyStore(url=":memory:")
+        from src.kb.store import PolicyStore
+        store = PolicyStore()
         store.ingest_markdown_policies("data/policies")
     except Exception:
         pass
@@ -35,6 +38,9 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+# Instrument FastAPI endpoints with OpenTelemetry spans
+FastAPIInstrumentor.instrument_app(app)
 
 
 @app.get("/health", tags=["System"])
