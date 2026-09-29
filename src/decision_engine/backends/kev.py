@@ -17,7 +17,7 @@ class KevDecisionEngine(BaseDecisionEngine):
     def __init__(
         self,
         endpoint_url: str | None = None,
-        fallback_to_mock: bool = True,
+        fallback_to_mock: bool = False,
         timeout: float = 10.0,
     ) -> None:
         super().__init__(engine_name="kev")
@@ -99,7 +99,10 @@ class KevDecisionEngine(BaseDecisionEngine):
                     engine_name="kev-fallback",
                     latency_ms=output.latency_ms,
                 )
-            raise
+            raise RuntimeError(
+                f"Kev-0.8B inference call to {self.endpoint_url} failed: {exc}. "
+                "Ensure local kev-serve is running or specify fallback_to_mock=True."
+            ) from exc
 
     async def triage(self, text: str) -> JevDecisionResult:
         """Evaluates Jev primitives (Department Choice, Urgency Score, Churn Risk Noul) on Kev."""
@@ -183,7 +186,10 @@ class KevDecisionEngine(BaseDecisionEngine):
                 res = await self._mock_engine.triage(text)
                 res.engine_name = "kev-fallback"
                 return res
-            raise
+            raise RuntimeError(
+                f"Kev-0.8B triage call to {self.endpoint_url} failed: {exc}. "
+                "Ensure local kev-serve is running or specify fallback_to_mock=True."
+            ) from exc
 
     def _build_triage_result(
         self,

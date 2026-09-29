@@ -85,13 +85,22 @@ def test_decision_output_validation_rejects_unnormalized():
 
 @pytest.mark.asyncio
 async def test_kev_offline_fallback():
-    """Asserts that KevDecisionEngine gracefully falls back to mock when offline."""
-    # Pointing to an invalid local port that definitely won't respond
+    """Asserts that KevDecisionEngine gracefully falls back to mock when explicitly requested."""
     offline_kev = KevDecisionEngine(endpoint_url="http://localhost:59999", fallback_to_mock=True, timeout=0.5)
     result = await offline_kev.decide("Duplicate payment made, send refund", CANDIDATES)
 
     assert result.action == "refund"
     assert result.engine_name == "kev-fallback"
+
+
+@pytest.mark.asyncio
+async def test_kev_strict_offline_raises():
+    """Asserts that KevDecisionEngine fails loudly by default (fallback_to_mock=False) when offline."""
+    strict_kev = KevDecisionEngine(endpoint_url="http://localhost:59999", timeout=0.5)
+    assert strict_kev.fallback_to_mock is False
+
+    with pytest.raises(RuntimeError, match="Kev-0.8B inference call.*failed"):
+        await strict_kev.decide("Duplicate payment made, send refund", CANDIDATES)
 
 
 def test_factory_engine_instantiation():
