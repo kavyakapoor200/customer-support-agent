@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
     # Observability (OpenTelemetry)
     OTEL_SERVICE_NAME: str = "customer-support-agent"
-    OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4317"
+    OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None
     OTEL_TRACES_CONSOLE_ENABLED: bool = True
 
     # Thresholds config file location

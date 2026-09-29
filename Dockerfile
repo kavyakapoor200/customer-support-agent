@@ -23,6 +23,7 @@ ENV HOME=/home/user \
     APP_ENV=production \
     DECISION_ENGINE_BACKEND=groq \
     QDRANT_URL=:memory: \
+    OTEL_EXPORTER_OTLP_ENDPOINT="" \
     OTEL_TRACES_CONSOLE_ENABLED=false
 
 WORKDIR $HOME/app

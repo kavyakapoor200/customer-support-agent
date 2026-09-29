@@ -37,10 +37,10 @@ def init_telemetry() -> trace.Tracer:
             logger.debug("Console exporter disabled: %s", e)
 
     # 2. OTLP Exporter (for Jaeger in Docker)
-    if settings.OTEL_EXPORTER_OTLP_ENDPOINT:
+    if settings.OTEL_EXPORTER_OTLP_ENDPOINT and settings.OTEL_EXPORTER_OTLP_ENDPOINT.strip():
         try:
             otlp_exporter = OTLPSpanExporter(
-                endpoint=settings.OTEL_EXPORTER_OTLP_ENDPOINT,
+                endpoint=settings.OTEL_EXPORTER_OTLP_ENDPOINT.strip(),
                 insecure=True,
             )
             provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
