@@ -5,6 +5,7 @@ from typing import Any
 
 from langgraph.types import interrupt
 
+from src.cognition.gating import evaluate_triage_gating
 from src.core.config import get_settings
 from src.decision_engine.factory import get_decision_engine
 from src.kb.store import PolicyStore
@@ -73,7 +74,7 @@ async def intake_node(state: AgentState) -> dict[str, Any]:
 
 
 async def retrieve_policy_node(state: AgentState) -> dict[str, Any]:
-    """Retrieves top matching policy snippets for audit reference."""
+    """Retrieves top matching policy snippets for audit reference and response grounding."""
     store = PolicyStore(url=":memory:")
     store.ingest_markdown_policies("data/policies")
     snippets = store.search_policies(state["raw_text"], limit=2)
@@ -149,26 +150,20 @@ async def decide_node(state: AgentState) -> dict[str, Any]:
 
 
 async def gate_node(state: AgentState) -> dict[str, Any]:
-    """Triage gate: evaluates financial limits and P0 urgency to trigger supervisor review."""
+    """Triage gate: delegates to single-owner cognition layer (gating.py)."""
     amount = state.get("extracted_amount")
-    is_escalation = state.get("is_escalation") or state.get("priority") == "P0"
-    priority = state.get("priority", "P2")
+    gating = evaluate_triage_gating(
+        department=state.get("department", "general"),
+        urgency_score=state.get("urgency_score", 0.0),
+        churn_risk=state.get("churn_risk_probability", 0.0),
+        amount_usd=amount,
+        action=state.get("decision_action"),
+    )
 
-    if amount is not None and amount > 50.0:
-        gating_outcome = "human_review"
-        requires_human = True
-        if priority != "P0":
-            priority = "P1"
-        rationale = f"[{priority}] Requested amount ${amount:.2f} exceeds auto-approval ceiling ($50.00); routed to supervisor desk."
-    elif is_escalation:
-        gating_outcome = "human_review"
-        requires_human = True
-        priority = "P0"
-        rationale = f"[P0] {state.get('escalation_reason') or 'Critical Urgency or High Churn Risk'}"
-    else:
-        gating_outcome = "auto_execute"
-        requires_human = False
-        rationale = f"[{priority}] Safe & routine inquiry routed to automated System 2 responder."
+    gating_outcome = gating.outcome
+    requires_human = gating.requires_human
+    priority = gating.priority
+    rationale = gating.rationale
 
     # Dispatch rich Slack webhook alert if ticket paused for review
     settings = get_settings()
@@ -225,11 +220,12 @@ async def gate_node(state: AgentState) -> dict[str, Any]:
 
 
 async def draft_node(state: AgentState) -> dict[str, Any]:
-    """Generates customer response via System 2 Groq LLM (or escalation acknowledgment)."""
+    """Generates customer response via System 2 Groq LLM grounded in Qdrant policies."""
     lang = state.get("detected_language", "english")
     is_review = state.get("gating_outcome") == "human_review"
     action = state.get("decision_action", "general")
     amount = state.get("extracted_amount")
+    policies = state.get("retrieved_policies", [])
 
     if is_review:
         if lang == "hindi":
@@ -258,6 +254,7 @@ async def draft_node(state: AgentState) -> dict[str, Any]:
             department=state.get("department", "general"),
             urgency=state.get("urgency_level", 1),
             language=lang,
+            policies=policies,
         )
         reply = result.generated_text
         is_live = not result.is_simulated
@@ -271,6 +268,7 @@ async def draft_node(state: AgentState) -> dict[str, Any]:
             "urgency": state.get("urgency_score"),
             "live_llm": is_live,
             "is_review": is_review,
+            "grounded_policies_count": len(policies),
         }
     )
 

@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -25,6 +26,7 @@ class GroqSystemTwoResponder:
     """
     Layer 2 / System 2 Generative Responder powered by open-source models via Groq.
     Only triggered for Safe & Routine tickets (P1 and P2).
+    Strictly grounded on Layer 5 Qdrant policy retrieval.
     """
 
     def __init__(self, api_key: str | None = None, model: str = "openai/gpt-oss-120b"):
@@ -45,11 +47,12 @@ class GroqSystemTwoResponder:
         department: str,
         urgency: int,
         language: str = "english",
+        policies: list[dict[str, Any]] | None = None,
     ) -> ResponseGenerationResult:
-        """Drafts a high-quality, personalized response for safe tickets."""
+        """Drafts a high-quality, personalized response for safe tickets grounded in company policy."""
         if self.client:
-            return self._call_groq(ticket_text, department, urgency, language)
-        return self._simulate_response(ticket_text, department, language)
+            return self._call_groq(ticket_text, department, urgency, language, policies)
+        return self._simulate_response(ticket_text, department, language, policies)
 
     def _call_groq(
         self,
@@ -57,6 +60,7 @@ class GroqSystemTwoResponder:
         department: str,
         urgency: int,
         language: str,
+        policies: list[dict[str, Any]] | None = None,
     ) -> ResponseGenerationResult:
         clean_lang = (language or "english").lower().strip()
         if clean_lang == "hindi":
@@ -72,10 +76,20 @@ class GroqSystemTwoResponder:
         else:
             lang_instruction = "fluent, professional, and empathetic English"
 
+        policy_context = ""
+        if policies:
+            snippets = "\n".join([f"- **{p.get('title', 'Company SLA')}:** {p.get('content', '')}" for p in policies[:2]])
+            policy_context = (
+                f"\nRELEVANT COMPANY POLICIES & CONSTRAINTS (MANDATORY INVARIANTS):\n"
+                f"{snippets}\n"
+                "You must strictly adhere to these policies. Never promise terms that contradict company policy.\n"
+            )
+
         system_prompt = (
             f"You are a friendly, highly professional customer support specialist for the '{department}' department.\n"
             f"The customer's primary language is '{clean_lang.upper()}'. You MUST respond strictly in {lang_instruction}.\n"
             f"The urgency level is {urgency}/3.\n"
+            f"{policy_context}\n"
             f"Provide a clear, helpful, empathetic, and actionable solution to their ticket.\n"
             f"Keep your response concise, polite, and directly address their specific need."
         )
@@ -102,10 +116,16 @@ class GroqSystemTwoResponder:
             )
         except Exception as e:
             logger.warning("Groq call failed (%s). Falling back to smart response.", e)
-            fallback = self._simulate_response(ticket_text, department, language)
+            fallback = self._simulate_response(ticket_text, department, language, policies)
             return fallback
 
-    def _simulate_response(self, ticket_text: str, department: str, language: str) -> ResponseGenerationResult:
+    def _simulate_response(
+        self,
+        ticket_text: str,
+        department: str,
+        language: str,
+        policies: list[dict[str, Any]] | None = None,
+    ) -> ResponseGenerationResult:
         """Fallback response generator when GROQ_API_KEY is not available or offline."""
         clean_lang = (language or "english").lower().strip()
         if clean_lang == "hindi":
@@ -125,14 +145,14 @@ class GroqSystemTwoResponder:
         elif clean_lang == "french":
             text = (
                 "Bonjour,\n\nMerci d'avoir contacté notre équipe de support. Nous avons bien reçu votre demande "
-                "et nous nous en occupons immédiatement."
+                "et nous nous en occupons immédiatement selon nos politiques de service."
             )
         else:
             if department == "billing":
                 text = (
                     "Hi there,\n\n"
                     "Thank you for contacting our Billing Support team. I've located your account and reviewed your latest "
-                    "invoice details. Everything is now up to date, and you can access your updated receipt directly from "
+                    "invoice details according to our SLA policies. Everything is now up to date, and you can access your updated receipt directly from "
                     "your billing settings dashboard. Please let us know if you need any additional adjustments!"
                 )
             elif department == "technical":
