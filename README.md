@@ -11,13 +11,16 @@ license: mit
 
 # Customer Support Agent with Deterministic Gating & System 1 Models
 
-[![CI](https://github.com/your-username/customer-support-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/customer-support-agent/actions)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://customer-support-agent-0so5.onrender.com)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repo-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/kavyakapoor200/customer-support-agent)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![LangGraph](https://img.shields.io/badge/Orchestration-LangGraph-orange.svg)](https://github.com/langchain-ai/langgraph)
 [![MCP Compliant](https://img.shields.io/badge/Protocol-MCP%202.0-purple.svg)](https://modelcontextprotocol.io)
 [![OpenTelemetry](https://img.shields.io/badge/Observability-OpenTelemetry-green.svg)](https://opentelemetry.io)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+
+> 🌐 **Live Web Application:** [https://customer-support-agent-0so5.onrender.com](https://customer-support-agent-0so5.onrender.com)
 
 An enterprise-grade, calibrated **Customer Support Agent with Deterministic Gating, System 1 Models, LangGraph Human-in-the-Loop Supervision, and OpenTelemetry Observability**.
 
