@@ -52,7 +52,7 @@ Autonomous LLMs in customer support routinely suffer from three fatal enterprise
 
 ### The Solution: Deterministic Gating
 Our architecture decouples **cognition and scoring** from **action execution**:
-- **System 1 Model (`Kev-0.8B`):** Evaluates user intent into a calibrated probability distribution over structured taxonomy actions in `162.7 ms` (P50) on local Apple Silicon GPU (zero cloud API round-trips).
+- **System 1 Model (`Kev-0.8B`):** Evaluates user intent into a calibrated probability distribution over structured taxonomy actions in `162.9 ms` (P50) on local Apple Silicon GPU (zero cloud API round-trips).
 - **Deterministic Code Gate (`config/thresholds.yaml`):** Python code enforces SLA limits, amounts, and confidence thresholds:
   - $\text{Confidence} \ge \tau_{\text{auto}}$ AND $\text{Amount} \le \text{Max} \implies$ **Auto-Execute**
   - $\tau_{\text{review}} \le \text{Confidence} < \tau_{\text{auto}}$ OR $\text{Amount} > \text{Max} \implies$ **Human Review (LangGraph Interrupt)**
@@ -139,15 +139,17 @@ Evaluated on **100 synthetic SaaS support tickets** (50 English, 35 Hinglish, 15
 | **Raw Expected Calibration Error (ECE)** | **0.1929** | 0.0504 | $\le 0.1500$ | ⚠️ EXCEEDS TARGET (Raw Softmax) |
 | **Calibrated ECE (Temperature Scaled)** | **0.0739** ($T=0.65$) | N/A (Linear Heuristic) | $\le 0.1500$ | ✅ PASS (Calibrated) |
 | **Option-Order Flip Rate** | **2.0%** | 4.0% | $\le 5.0\%$ | ✅ PASS |
-| **P50 Decision Latency** | **162.7 ms** | 0.03 ms | $< 50.0\text{ ms}$ | ⚠️ EXCEEDS TARGET (Local On-Device GPU) |
-| **P95 Decision Latency** | **178.4 ms** | 0.04 ms | $< 150.0\text{ ms}$ | ⚠️ EXCEEDS TARGET (Local On-Device GPU) |
+| **P50 Decision Latency** | **162.9 ms** | 0.01 ms | $< 50.0\text{ ms}$ | ⚠️ EXCEEDS TARGET (Local On-Device GPU) |
+| **P95 Decision Latency** | **203.9 ms** | 0.03 ms | $< 150.0\text{ ms}$ | ⚠️ EXCEEDS TARGET (Local On-Device GPU) |
 | **Cost per 1,000 Tickets** | **$0.00** | $0.00 | $< \$1.00$ | 💰 ZERO COST |
 
 #### Target Analysis & Engineering Rationale
-- **Latency Targets ($< 50.0\text{ ms}$ P50, $< 150.0\text{ ms}$ P95):** The $< 50\text{ ms}$ SLA was originally formulated around in-memory keyword matching heuristics (which execute in $0.03\text{ ms}$). Running full neural forward passes of an 800M parameter model (`jaredpalmer/kev-0.8b`) locally via Apple Silicon MLX GPU takes **162.7 ms P50**. While exceeding the synthetic 50 ms target, this is **10× to 15× faster** than cloud LLM APIs (~1,200–2,500 ms), completely eliminates cloud API token fees, keeps sensitive customer data on-device, and operates with zero network dependency. Sub-50 ms neural inference would require 4-bit INT4 quantization or continuous batching.
-- **Calibration Target ($\le 0.1500$ ECE):** Raw softmax outputs from Kev-0.8B exhibit slight overconfidence (raw ECE = 0.1929). Post-hoc **Temperature Scaling** ($T = 0.65$), fitted on a separate held-out 30-ticket calibration split, reduces ECE to **0.0739** (passing the $\le 0.1500$ target) without modifying predicted classifications or leaking test data.
+- **Latency Targets ($< 50.0\text{ ms}$ P50, $< 150.0\text{ ms}$ P95):** The $< 50\text{ ms}$ SLA was originally formulated around in-memory keyword matching heuristics (which execute in $0.01\text{ ms}$). Running full neural forward passes of an 800M parameter model (`jaredpalmer/kev-0.8b`) locally via Apple Silicon MLX GPU takes **162.9 ms P50** and **203.9 ms P95**. While exceeding the synthetic 50 ms target, this is **10× to 15× faster** than cloud LLM APIs (~1,200–2,500 ms), completely eliminates cloud API token fees, keeps sensitive customer data on-device, and operates with zero network dependency. Sub-50 ms neural inference would require 4-bit INT4 quantization or continuous batching.
+- **Calibration Target ($\le 0.1500$ ECE):** Raw softmax outputs from Kev-0.8B exhibit significant **underconfidence** (mean raw confidence of 73.4% vs 91.0% empirical accuracy on evaluation, and 77.5% vs 83.3% on calibration). Because the raw model is underconfident, post-hoc **Temperature Scaling** with $T < 1.0$ ($T = 0.65$), fitted on a separate held-out 30-ticket calibration split, sharpens probability estimates and reduces ECE to **0.0739** (passing the $\le 0.1500$ target) without modifying predicted classifications. *(Note: 30 calibration tickets is a small sample; production deployments should calibrate across $\ge 200$ tickets).*
 
 ### 2. Confidence Threshold Sweep ($\tau$) — Measured on Real Kev-0.8B
+
+*Note: The threshold sweep below is evaluated directly through the runtime `KevDecisionEngine(temperature=0.65)` path using calibrated confidences.*
 
 | Confidence Threshold ($\tau$) | Auto Count | Auto Rate | Review Count | Review Rate | Auto Precision | 95% CI (Wilson) | Disputed Auto-Refunds |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -169,8 +171,8 @@ Evaluated on **100 synthetic SaaS support tickets** (50 English, 35 Hinglish, 15
 | Dimension | Our System (Kev-0.8B Gated) | Standard LLM Baseline (GPT-4 / Cloud API - Estimated)* |
 |---|---|---|
 | **Execution Architecture** | Deterministic YAML Code Gate | Autonomous Prompt Decision |
-| **Decision Latency** | **162.7 ms** (Local Apple Silicon GPU) | ~1,200 - 2,500 ms (Cloud API)* |
-| **Safety Guarantees** | $0\%$ Unauthorized Auto-Refunds (Code Enforced) | Prone to jailbreak / hallucination |
+| **Decision Latency** | **162.9 ms** (Local Apple Silicon GPU) | ~1,200 - 2,500 ms (Cloud API)* |
+| **Safety Guarantees** | 0 observed at $\tau \ge 0.70$ in 100-ticket synthetic sample (1 observed at $\tau \le 0.65$) | Prone to jailbreak / hallucination |
 | **Human Supervision** | Native LangGraph State Interrupts | Ad-hoc or manual re-routing |
 | **Cost per 1k Tickets** | **$0.00** (Local On-Device Execution) | $2.50 - $15.00* |
 | **Multi-Dialect Handling** | English, Hinglish, Hindi Devanagari | English-skewed prompt comprehension |

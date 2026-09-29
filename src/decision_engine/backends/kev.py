@@ -7,6 +7,7 @@ import httpx
 from src.core.config import get_settings
 from src.decision_engine.backends.mock import MockDecisionEngine
 from src.decision_engine.base import BaseDecisionEngine, DecisionOutput, JevDecisionResult
+from src.decision_engine.calibration import apply_temperature_scaling
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +20,13 @@ class KevDecisionEngine(BaseDecisionEngine):
         endpoint_url: str | None = None,
         fallback_to_mock: bool = False,
         timeout: float = 10.0,
+        temperature: float | None = None,
     ) -> None:
         super().__init__(engine_name="kev")
         self.endpoint_url = endpoint_url or get_settings().KEV_ENDPOINT_URL
         self.fallback_to_mock = fallback_to_mock
         self.timeout = timeout
+        self.temperature = temperature if temperature is not None else get_settings().TEMPERATURE
         self._mock_engine = MockDecisionEngine() if fallback_to_mock else None
 
     async def decide(self, text: str, candidate_actions: list[str]) -> DecisionOutput:
@@ -74,11 +77,22 @@ class KevDecisionEngine(BaseDecisionEngine):
                 confidence = float(data.get("confidence", 0.0))
                 probabilities = data.get("probabilities") or {a: 1.0 / len(candidate_actions) for a in candidate_actions}
 
+            raw_probabilities = dict(probabilities)
+            raw_confidence = confidence
+
+            if self.temperature > 0.0 and abs(self.temperature - 1.0) > 1e-4:
+                probabilities = apply_temperature_scaling(probabilities, candidate_actions, self.temperature)
+                confidence = float(probabilities.get(action, confidence))
+
             return DecisionOutput(
                 action=action,
                 confidence=confidence,
                 probabilities=probabilities,
-                raw_scores=data.get("raw_scores", {}),
+                raw_scores={
+                    "raw_probabilities": raw_probabilities,
+                    "raw_confidence": raw_confidence,
+                    **data.get("raw_scores", {}),
+                },
                 engine_name=self.engine_name,
                 latency_ms=round(latency, 2),
             )

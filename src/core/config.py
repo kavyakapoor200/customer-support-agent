@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     JEV_API_KEY: str | None = None
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "groq/openai/gpt-oss-120b"
+    TEMPERATURE: float = 0.65  # Post-hoc calibration temperature parameter
     SLACK_WEBHOOK_URL: str | None = None
 
     # Memory & State (PostgreSQL)

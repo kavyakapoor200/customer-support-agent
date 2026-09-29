@@ -103,6 +103,32 @@ async def test_kev_strict_offline_raises():
         await strict_kev.decide("Duplicate payment made, send refund", CANDIDATES)
 
 
+def test_temperature_scaling_confidence_changes_action_invariant():
+    """Asserts that temperature scaling modifies confidence monotonically while preserving predicted action."""
+    from src.decision_engine.calibration import apply_temperature_scaling
+
+    candidates = ["refund", "cancel_subscription", "billing_dispute"]
+    raw_probs = {"refund": 0.70, "cancel_subscription": 0.20, "billing_dispute": 0.10}
+
+    # T < 1.0 (sharpening / underconfidence correction)
+    sharpened = apply_temperature_scaling(raw_probs, candidates, temperature=0.65)
+    # T = 1.0 (identity)
+    identity = apply_temperature_scaling(raw_probs, candidates, temperature=1.0)
+    # T > 1.0 (softening / overconfidence correction)
+    softened = apply_temperature_scaling(raw_probs, candidates, temperature=2.0)
+
+    # Predicted action (argmax) must remain identical across all temperatures
+    assert max(sharpened, key=sharpened.get) == "refund"
+    assert max(identity, key=identity.get) == "refund"
+    assert max(softened, key=softened.get) == "refund"
+
+    # Confidences must change monotonically with T: sharpened > identity > softened
+    assert sharpened["refund"] > identity["refund"] > softened["refund"]
+    assert identity["refund"] == 0.70
+    assert sharpened["refund"] > 0.75
+    assert softened["refund"] < 0.65
+
+
 def test_factory_engine_instantiation():
     """Validates that factory returns correct engine types."""
     mock_eng = get_decision_engine("mock")

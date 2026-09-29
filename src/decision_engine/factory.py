@@ -22,7 +22,10 @@ def get_decision_engine(backend: str | None = None) -> BaseDecisionEngine:
     if selected_backend == "mock":
         return MockDecisionEngine()
     elif selected_backend == "kev":
-        return KevDecisionEngine(endpoint_url=settings.KEV_ENDPOINT_URL)
+        return KevDecisionEngine(
+            endpoint_url=settings.KEV_ENDPOINT_URL,
+            temperature=settings.TEMPERATURE,
+        )
     elif selected_backend == "jev":
         return JevDecisionEngine(endpoint_url=settings.JEV_ENDPOINT_URL, api_key=settings.JEV_API_KEY)
     elif selected_backend in ("groq", "llm_baseline"):

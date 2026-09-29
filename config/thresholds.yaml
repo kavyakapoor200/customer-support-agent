@@ -9,6 +9,11 @@ defaults:
   deny_threshold: 0.60
   p0_always_review: false
 
+# Post-hoc probability calibration (Temperature Scaling)
+calibration:
+  temperature: 0.65 # Fitted on held-out synthetic calibration split (N=30)
+
+
 # Per-action deterministic gating rules ("Model scores, code decides")
 policies:
   refund:

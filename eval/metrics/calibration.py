@@ -92,34 +92,7 @@ def fit_temperature_scaling(
     return round(best_t, 4)
 
 
-def apply_temperature_scaling(
-    probabilities: dict[str, float],
-    candidate_actions: Sequence[str],
-    temperature: float,
-) -> dict[str, float]:
-    """Applies temperature scaling to a single probability distribution.
+from src.decision_engine.calibration import apply_temperature_scaling
 
-    Args:
-        probabilities: Mapping of candidate action to raw probability.
-        candidate_actions: Order of classes.
-        temperature: Calibrated scalar T > 0.
-
-    Returns:
-        Calibrated probability distribution dictionary.
-    """
-    import numpy as np
-
-    if temperature <= 0.0 or abs(temperature - 1.0) < 1e-6:
-        return probabilities
-
-    classes = list(candidate_actions)
-    p_vec = np.array([probabilities.get(c, 1e-12) for c in classes], dtype=float)
-    p_vec = np.clip(p_vec, 1e-12, 1.0)
-    logits = np.log(p_vec)
-    scaled = logits / temperature
-    scaled -= np.max(scaled)
-    exp_scaled = np.exp(scaled)
-    calibrated_vec = exp_scaled / np.sum(exp_scaled)
-
-    return {c: round(float(calibrated_vec[i]), 4) for i, c in enumerate(classes)}
+__all__ = ["apply_temperature_scaling", "compute_ece", "fit_temperature_scaling"]
 

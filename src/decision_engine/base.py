@@ -14,9 +14,9 @@ class DecisionOutput(BaseModel):
         ...,
         description="Probability distribution across all candidate actions, summing to ~1.0."
     )
-    raw_scores: dict[str, float] = Field(
+    raw_scores: dict[str, Any] = Field(
         default_factory=dict,
-        description="Uncalibrated model logits or raw score values."
+        description="Uncalibrated model logits, raw scores, or metadata."
     )
     engine_name: str = Field(..., description="Name of the inference backend (e.g. kev, mock, groq).")
     latency_ms: float = Field(..., ge=0.0, description="Decision latency in milliseconds.")
