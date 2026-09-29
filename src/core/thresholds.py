@@ -8,6 +8,10 @@ from pydantic import BaseModel, Field, model_validator
 
 class ActionThresholds(BaseModel):
     """Threshold settings for a specific action category."""
+    priority: str = Field(
+        default="P2",
+        description="'P0', 'P1', or 'P2' base severity level."
+    )
     auto_execute_threshold: float = Field(
         ...,
         ge=0.0,

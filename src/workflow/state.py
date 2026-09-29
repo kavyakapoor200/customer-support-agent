@@ -22,4 +22,5 @@ class AgentState(TypedDict):
     verification_passed: bool
     final_action_taken: str | None
     tool_result: dict[str, Any] | None
+    priority: str                # "P0" | "P1" | "P2"
     trajectory: list[dict[str, Any]]

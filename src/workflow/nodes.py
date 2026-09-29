@@ -45,15 +45,16 @@ ISO_TO_LANGUAGE: dict[str, str] = {
     "th": "thai",
 }
 
-HINGLISH_KEYWORDS = {
-    "kardo", "kijiye", "karo", "karein", "hai", "hain", "bhai", "bro", "yaar",
-    "mera", "meri", "mere", "humne", "hamara", "hamari", "hum", "mujhe", "mujhko",
-    "nahi", "na", "paise", "paisa", "rupaye", "rupees", "wapas", "waapas", "chahiye", "galti",
-    "se", "ho", "gaya", "gayi", "gaye", "kat", "kata", "cut", "de", "do", "dijiye",
-    "rok", "roko", "band", "khol", "kholo", "chal", "rha", "raha", "rahi", "rahe",
-    "tha", "thi", "the", "kya", "kyu", "kyun", "kaise", "kaisa", "kab", "abhi",
-    "turant", "jaldi", "aap", "aapka", "aapki", "aapke", "login", "batayein", "batao",
-    "madad", "dikkat", "par", "pe", "ko", "aur", "bhi", "sir", "mam"
+DISTINCTIVE_HINGLISH_WORDS = {
+    "kardo", "kijiye", "karein", "karna", "karo", "chahiye", "wapas", "waapas", "rupaye",
+    "katgaya", "katgaye", "katgayi", "batao", "batayein", "madad", "dikkat", "shukriya",
+    "galti", "turant", "jaldi", "dijiye", "samadhan", "paise", "paisa", "rupay",
+}
+
+COMMON_HINGLISH_MARKERS = {
+    "hai", "hain", "bhai", "yaar", "mera", "meri", "mere", "humne", "hamara", "kar",
+    "hamari", "mujhe", "mujhko", "nahi", "nahin", "roko", "kholo",
+    "raha", "rahi", "rahe", "kyun", "kaise", "kaisa", "aapka", "aapki", "aapke",
 }
 
 
@@ -71,9 +72,9 @@ def detect_language_and_script(text: str) -> tuple[str, str]:
     if re.search(r"[\u0400-\u04FF]", text):
         return "russian", "cyrillic"
 
-    # 2. Hinglish marker check (code-mixed Latin script)
-    words = set(re.findall(r"\w+", text.lower()))
-    if words.intersection(HINGLISH_KEYWORDS):
+    # 2. Hinglish marker check (code-mixed Latin script with collision-free token checks)
+    tokens = set(re.findall(r"\b[a-zA-Z]+\b", text.lower()))
+    if tokens.intersection(DISTINCTIVE_HINGLISH_WORDS) or len(tokens.intersection(COMMON_HINGLISH_MARKERS)) >= 2:
         return "hinglish", "latin"
 
     # 3. High-accuracy ISO language detection
@@ -197,27 +198,39 @@ async def gate_node(state: AgentState) -> dict[str, Any]:
         try:
             import httpx
 
+            priority_tag = gating.priority
+            if priority_tag == "P0":
+                alert_title = "🚨 *[P0 EMERGENCY ALERT] Critical Supervisor Review Needed*"
+                header_text = "🚨 P0 Emergency Alert: Immediate Action Required"
+            elif priority_tag == "P1":
+                alert_title = "⚠️ *[P1 HIGH SEVERITY] Supervisor Review Required*"
+                header_text = "⚠️ P1 High-Priority Review: Financial Dispute / High Value"
+            else:
+                alert_title = "📋 *[P2 STANDARD REVIEW] Routine Review Needed*"
+                header_text = "📋 P2 Standard Review: Operational Approval"
+
             review_payload = {
-                "text": f"⚠️ *Ticket #{state['ticket_id']} Requires Human Review* — Action: `{state['decision_action']}`",
+                "text": f"{alert_title} — Ticket #{state['ticket_id']} (Action: `{state['decision_action']}`)",
                 "blocks": [
                     {
                         "type": "header",
-                        "text": {"type": "plain_text", "text": "⚠️ Supervisor Review Needed"}
+                        "text": {"type": "plain_text", "text": header_text},
                     },
                     {
                         "type": "section",
                         "fields": [
                             {"type": "mrkdwn", "text": f"*Ticket ID:*\n{state['ticket_id']}"},
+                            {"type": "mrkdwn", "text": f"*Severity:*\n*{gating.priority}*"},
                             {"type": "mrkdwn", "text": f"*Action:*\n{state['decision_action']} ({state['decision_confidence']:.2f})"},
                             {"type": "mrkdwn", "text": f"*Amount:*\n${state['extracted_amount']:.2f}" if state.get("extracted_amount") else "*Amount:*\nN/A"},
-                            {"type": "mrkdwn", "text": f"*Trigger:*\n{gating.rationale}"}
-                        ]
+                            {"type": "mrkdwn", "text": f"*Trigger:*\n{gating.rationale}"},
+                        ],
                     },
                     {
                         "type": "section",
-                        "text": {"type": "mrkdwn", "text": f"*Customer Query:*\n> \"{state['raw_text']}\""}
-                    }
-                ]
+                        "text": {"type": "mrkdwn", "text": f"*Customer Query:*\n> \"{state['raw_text']}\""},
+                    },
+                ],
             }
             with httpx.Client(timeout=2.0) as client:
                 client.post(settings.SLACK_WEBHOOK_URL, json=review_payload)
@@ -231,12 +244,14 @@ async def gate_node(state: AgentState) -> dict[str, Any]:
             "outcome": gating.outcome,
             "requires_human": gating.requires_human,
             "rationale": gating.rationale,
-        }
+            "priority": gating.priority,
+        },
     )
 
     return {
         "gating_outcome": gating.outcome,
         "reviewer_notes": gating.rationale,
+        "priority": gating.priority,
         "trajectory": new_traj,
     }
 
@@ -261,25 +276,39 @@ async def _generate_live_reply(
             for p in policies[:2]
         ]) or "Standard SaaS 14-day refund and subscription SLA applies."
 
+        # Define clean, unambiguous target language specification
+        clean_lang = (language or "english").lower().strip()
+        if clean_lang == "hindi":
+            lang_instruction = "fluent, natural Hindi written in Devanagari script"
+        elif clean_lang == "hinglish":
+            lang_instruction = "conversational Hinglish (colloquial Hindi/Urdu words written in Latin/Roman script, e.g. 'Humne aapka refund process kar diya hai')"
+        elif clean_lang == "french":
+            lang_instruction = "fluent, professional French (Français)"
+        elif clean_lang == "spanish":
+            lang_instruction = "fluent, professional Spanish (Español)"
+        elif clean_lang == "german":
+            lang_instruction = "fluent, professional German (Deutsch)"
+        elif clean_lang == "chinese":
+            lang_instruction = "fluent, professional Simplified Chinese (简体中文)"
+        else:
+            lang_instruction = "fluent, professional, and empathetic English"
+
         system_prompt = (
-            "You are an empathetic, expert customer support assistant for a SaaS platform.\n"
-            "CRITICAL MANDATORY LANGUAGE RULE:\n"
-            "You MUST reply in the EXACT same language, script, and dialect that the customer used in their message!\n"
-            "- If the customer writes in Hinglish (code-mixed Hindi/Urdu written in Latin/Roman alphabet, e.g. 'mera refund kar do', 'paise wapas chahiye', 'bhai plan cancel karo'), you MUST reply in natural conversational Hinglish in Latin script.\n"
-            "- If the customer writes in Hindi (Devanagari script), you MUST reply in fluent Hindi (Devanagari script).\n"
-            "- If the customer writes in English, reply in English.\n"
-            "- If the customer writes in another language, reply in that language.\n"
-            "- NEVER default to English if the customer asked in Hinglish or Hindi!"
+            "You are an empathetic, expert customer support assistant for an enterprise SaaS platform.\n"
+            f"MANDATORY LANGUAGE SPECIFICATION: The user submitted their query in {clean_lang.upper()}.\n"
+            f"You MUST write your entire reply strictly and exclusively in {lang_instruction}.\n"
+            "Do NOT mix languages or switch to any other language."
         )
 
         prompt = (
             f"Customer Message: \"{text}\"\n"
-            f"Determined Action: {action}\n"
-            f"Amount: {f'${amount:.2f}' if amount else 'N/A'}\n"
-            f"Retrieved Company Policy:\n{policy_context}\n\n"
-            f"STRICT INSTRUCTION: Respond in the EXACT same language and tone as the customer's message. "
-            f"If the customer wrote in Hinglish, reply in Hinglish. Address their problem directly in 2-3 concise sentences.\n\n"
-            "Final Response:"
+            f"Target Reply Language: {clean_lang.upper()} ({lang_instruction})\n"
+            f"Determined Support Action: {action}\n"
+            f"Transaction Amount: {f'${amount:.2f}' if amount else 'N/A'}\n"
+            f"Relevant Company Policy:\n{policy_context}\n\n"
+            f"INSTRUCTION: Write an empathetic, direct customer support response strictly in {lang_instruction}. "
+            "Address the customer's request concisely in 2-3 sentences. Do not use generic placeholders.\n\n"
+            "Response:"
         )
 
         resp = await acompletion(

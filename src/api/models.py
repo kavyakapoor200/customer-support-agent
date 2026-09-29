@@ -25,6 +25,7 @@ class TicketResponse(BaseModel):
     gating_outcome: str
     detected_language: str
     requires_human_review: bool
+    priority: str = Field(default="P2", description="'P0', 'P1', or 'P2' severity level.")
     trajectory: list[dict[str, Any]] = Field(default_factory=list)
 
 
@@ -45,5 +46,6 @@ class PendingTicketItem(BaseModel):
     confidence: float
     amount: float | None
     reason: str
+    priority: str = Field(default="P2", description="'P0', 'P1', or 'P2' severity level.")
     draft_reply: str | None
     retrieved_policies: list[dict[str, Any]]

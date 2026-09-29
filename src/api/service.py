@@ -59,6 +59,7 @@ class TicketWorkflowService:
                 confidence=values.get("decision_confidence", 0.0),
                 amount=values.get("extracted_amount"),
                 reason=interrupt_val.get("reason", values.get("reviewer_notes", "Requires human review")),
+                priority=values.get("priority", "P2"),
                 draft_reply=values.get("draft_reply"),
                 retrieved_policies=values.get("retrieved_policies", []),
             )
@@ -69,6 +70,12 @@ class TicketWorkflowService:
                 review_reply = "नमस्ते, आपके अनुरोध के लिए सुपरवाइजर सत्यापन की आवश्यकता है। इसे हमारे सपोर्ट डेस्क पर भेज दिया गया है, जल्द ही समाधान मिलेगा।"
             elif lang == "hinglish":
                 review_reply = "Hi, aapki request ke liye supervisor verification ki zaroorat hai. Humne isse support desk par forward kar diya hai, jald update milega."
+            elif lang == "french":
+                review_reply = "Votre demande nécessite la validation d'un superviseur et a été transmise à notre équipe de support."
+            elif lang == "spanish":
+                review_reply = "Su solicitud requiere verificación por parte de un supervisor y ha sido transferida a nuestro equipo de soporte."
+            elif lang == "german":
+                review_reply = "Ihre Anfrage erfordert eine Überprüfung durch einen Supervisor und wurde an unser Support-Team weitergeleitet."
             else:
                 review_reply = "Your request requires supervisor verification and has been routed to our human support desk."
 
@@ -82,6 +89,7 @@ class TicketWorkflowService:
                 gating_outcome=values.get("gating_outcome", "human_review"),
                 detected_language=lang,
                 requires_human_review=True,
+                priority=values.get("priority", "P2"),
                 trajectory=values.get("trajectory", []),
             )
 
@@ -96,6 +104,7 @@ class TicketWorkflowService:
             gating_outcome=values.get("gating_outcome", "auto_execute"),
             detected_language=values.get("detected_language", "english"),
             requires_human_review=False,
+            priority=values.get("priority", "P2"),
             trajectory=values.get("trajectory", []),
         )
 
@@ -131,6 +140,7 @@ class TicketWorkflowService:
             gating_outcome=values.get("gating_outcome", "human_review"),
             detected_language=values.get("detected_language", "english"),
             requires_human_review=False,
+            priority=values.get("priority", "P2"),
             trajectory=values.get("trajectory", []),
         )
 

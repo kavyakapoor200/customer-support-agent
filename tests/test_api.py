@@ -29,13 +29,14 @@ def test_ticket_intake_auto_execute():
     assert data["requires_human_review"] is False
     assert data["decision_action"] == "refund"
     assert data["gating_outcome"] == "auto_execute"
+    assert data["priority"] == "P2"
     assert data["reply"] is not None
     assert data["tool_result"]["success"] is True
 
 
 def test_ticket_intake_and_human_review_lifecycle():
     """Validates end-to-end lifecycle for high-value ticket requiring human review."""
-    # 1. Intake $180 ticket (exceeds $50 auto-execute limit)
+    # 1. Intake $180 ticket (exceeds $50 auto-execute limit -> P1 priority)
     payload = {
         "text": "Please refund my company card $180 for annual license dispute",
         "customer_id": "CUST-API-02",
@@ -46,6 +47,7 @@ def test_ticket_intake_and_human_review_lifecycle():
 
     assert intake_data["status"] == "needs_review"
     assert intake_data["requires_human_review"] is True
+    assert intake_data["priority"] == "P1"
     ticket_id = intake_data["ticket_id"]
 
     # 2. Check that ticket is listed in /api/v1/tickets/pending
@@ -55,6 +57,7 @@ def test_ticket_intake_and_human_review_lifecycle():
     matching = [t for t in pending_list if t["ticket_id"] == ticket_id]
     assert len(matching) == 1
     assert matching[0]["amount"] == 180.0
+    assert matching[0]["priority"] == "P1"
 
     # 3. Submit human reviewer approval
     review_payload = {
@@ -68,6 +71,7 @@ def test_ticket_intake_and_human_review_lifecycle():
 
     assert review_data["status"] == "completed"
     assert review_data["requires_human_review"] is False
+    assert review_data["priority"] == "P1"
     assert "Supervisor verified" in review_data["reply"]
     assert review_data["tool_result"]["success"] is True
 
@@ -75,6 +79,22 @@ def test_ticket_intake_and_human_review_lifecycle():
     pending_after_resp = client.get("/api/v1/tickets/pending")
     pending_after = pending_after_resp.json()
     assert not any(t["ticket_id"] == ticket_id for t in pending_after)
+
+
+def test_ticket_intake_p0_emergency():
+    """Validates P0 emergency classification for critical security/SSO lockout."""
+    payload = {
+        "text": "URGENT! Entire team locked out of Okta SSO right now. P0 security blocker.",
+        "customer_id": "CUST-P0-SEC",
+    }
+    resp = client.post("/api/v1/tickets", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+
+    assert data["status"] == "needs_review"
+    assert data["requires_human_review"] is True
+    assert data["decision_action"] == "account_escalation"
+    assert data["priority"] == "P0"
 
 
 def test_gradio_ui_mount():

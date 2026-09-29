@@ -2,14 +2,17 @@ version: "1.0"
 
 # Global fallback defaults
 defaults:
+  priority: "P2"
   auto_execute_threshold: 0.90
   max_auto_amount_usd: 50.00
   review_threshold: 0.60
   deny_threshold: 0.60
+  p0_always_review: false
 
 # Per-action deterministic gating rules ("Model scores, code decides")
 policies:
   refund:
+    priority: "P2" # Standard operational, elevates to P1 if amount > $50
     auto_execute_threshold: 0.90
     max_auto_amount_usd: 50.00
     review_threshold: 0.60
@@ -17,6 +20,7 @@ policies:
     p0_always_review: false
 
   cancel_subscription:
+    priority: "P2" # Standard operational
     auto_execute_threshold: 0.85
     max_auto_amount_usd: 0.00 # N/A for cancellations
     review_threshold: 0.60
@@ -24,6 +28,7 @@ policies:
     p0_always_review: false
 
   billing_dispute:
+    priority: "P1" # High severity financial dispute
     auto_execute_threshold: 0.95
     max_auto_amount_usd: 30.00
     review_threshold: 0.50
@@ -31,6 +36,7 @@ policies:
     p0_always_review: false
 
   account_escalation:
+    priority: "P0" # Critical blocker: SSO lockout, security compromise
     auto_execute_threshold: 0.95
     max_auto_amount_usd: 0.00
     review_threshold: 0.70
@@ -38,6 +44,7 @@ policies:
     p0_always_review: true # Security / SSO lockouts require human confirmation
 
   general_inquiry:
+    priority: "P2" # Standard inquiry
     auto_execute_threshold: 0.80
     max_auto_amount_usd: 0.00
     review_threshold: 0.50
