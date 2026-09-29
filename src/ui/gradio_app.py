@@ -84,52 +84,25 @@ def create_gradio_ui() -> gr.Blocks:
                             btn_scen_p0 = gr.Button("🚨 SSO Lockout (P0 Emergency)", size="sm")
 
                     with gr.Column(scale=2):
-                        out_status = gr.Markdown("### Status\n*No ticket submitted yet.*")
-                        out_reply = gr.Textbox(label="Agent Response", lines=5, interactive=False)
-                        out_details = gr.JSON(label="System Execution Details (Raw Payload)")
+                        out_reply = gr.Textbox(label="Agent Response", lines=6, interactive=False)
+                        with gr.Accordion("🛠️ Technical Details (API Payload)", open=False):
+                            out_details = gr.JSON(label="Payload")
 
                 async def handle_submit(text: str):
                     if not text.strip():
-                        return "### Status\n*Please enter a message.*", "", {}
+                        return "Please enter a message.", {}
 
                     # Automatically generate customer reference without forcing manual input
                     auto_cust_id = f"CUST-{uuid.uuid4().hex[:6].upper()}"
                     req = TicketIntakeRequest(text=text, customer_id=auto_cust_id)
                     res = await workflow_service.intake_ticket(req)
 
-                    # Dynamic Priority & Status Badge
-                    priority_str = getattr(res, "priority", "P2")
-                    if priority_str == "P0":
-                        p_badge = "<span style='color:#ef4444; font-weight:bold;'>🔴 P0 (CRITICAL EMERGENCY)</span>"
-                    elif priority_str == "P1":
-                        p_badge = "<span style='color:#f97316; font-weight:bold;'>🟠 P1 (HIGH SEVERITY)</span>"
-                    else:
-                        p_badge = "<span style='color:#10b981; font-weight:bold;'>🟢 P2 (STANDARD)</span>"
+                    return res.reply or "", res.model_dump()
 
-                    if res.gating_outcome == "auto_execute":
-                        outcome_badge = "⚡ <span style='color:#10b981; font-weight:bold;'>AUTO-RESOLVED</span>"
-                    elif res.gating_outcome == "human_review":
-                        outcome_badge = "⚠️ <span style='color:#f97316; font-weight:bold;'>ROUTED TO SUPERVISOR DESK</span>"
-                    elif res.gating_outcome == "clarify":
-                        outcome_badge = "ℹ️ <span style='color:#3b82f6; font-weight:bold;'>CLARIFICATION NEEDED</span>"
-                    else:
-                        outcome_badge = "❌ <span style='color:#ef4444; font-weight:bold;'>DENIED BY POLICY</span>"
-
-                    status_md = (
-                        f"### Status: {outcome_badge}\n"
-                        f"* **Severity Priority:** {p_badge}\n"
-                        f"* **Ticket ID:** `{res.ticket_id}`\n"
-                        f"* **Classified Action:** `{res.decision_action}` (Confidence: {res.decision_confidence:.2f})\n"
-                        f"* **Detected Language:** `{res.detected_language.upper()}`\n"
-                        f"* **Human Review Required:** `{'YES' if res.requires_human_review else 'NO'}`"
-                    )
-
-                    return status_md, res.reply or "", res.model_dump()
-
-                btn_send.click(handle_submit, inputs=[user_input], outputs=[out_status, out_reply, out_details])
+                btn_send.click(handle_submit, inputs=[user_input], outputs=[out_reply, out_details])
                 btn_clear.click(
-                    lambda: ("", "### Status\n*Cleared.*", "", {}),
-                    outputs=[user_input, out_status, out_reply, out_details],
+                    lambda: ("", "", {}),
+                    outputs=[user_input, out_reply, out_details],
                 )
 
                 # Quick Scenario wiring
