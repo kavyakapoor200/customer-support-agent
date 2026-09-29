@@ -75,9 +75,15 @@ async def intake_node(state: AgentState) -> dict[str, Any]:
 
 async def retrieve_policy_node(state: AgentState) -> dict[str, Any]:
     """Retrieves top matching policy snippets for audit reference and response grounding."""
-    store = PolicyStore(url=":memory:")
-    store.ingest_markdown_policies("data/policies")
-    snippets = store.search_policies(state["raw_text"], limit=2)
+    settings = get_settings()
+    try:
+        store = PolicyStore(url=settings.QDRANT_URL)
+        snippets = store.search_policies(state["raw_text"], limit=2)
+    except Exception as exc:
+        logger.warning("Live Qdrant unavailable (%s), falling back to in-memory store.", exc)
+        store = PolicyStore(url=":memory:")
+        store.ingest_markdown_policies("data/policies")
+        snippets = store.search_policies(state["raw_text"], limit=2)
     policies_data = [s.model_dump() for s in snippets]
 
     new_traj = _record_step(
@@ -171,6 +177,9 @@ async def gate_node(state: AgentState) -> dict[str, Any]:
         try:
             import httpx
             alert_payload = {
+                "name": f"🚨 [{priority}] {state.get('department', 'general').upper()} - Ticket #{state.get('ticket_id')}: {rationale}",
+                "price": 0,
+                "qty": 1,
                 "text": f"🚨 *[{priority} ALERT] Support Ticket Review Needed* — Ticket #{state.get('ticket_id')}",
                 "blocks": [
                     {

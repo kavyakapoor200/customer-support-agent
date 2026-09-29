@@ -1,3 +1,14 @@
+---
+title: Customer Support AI Agent
+emoji: ⚡
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+---
+
 # Customer Support Agent with Deterministic Gating & System 1 Models
 
 [![CI](https://github.com/your-username/customer-support-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/customer-support-agent/actions)

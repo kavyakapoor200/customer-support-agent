@@ -4,6 +4,7 @@ from typing import Any
 
 import gradio as gr
 from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import RedirectResponse
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from src.api.models import (
@@ -41,6 +42,12 @@ app = FastAPI(
 
 # Instrument FastAPI endpoints with OpenTelemetry spans
 FastAPIInstrumentor.instrument_app(app)
+
+
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
+async def root_redirect() -> RedirectResponse:
+    """Redirects root to the Gradio Support UI."""
+    return RedirectResponse(url="/ui")
 
 
 @app.get("/health", tags=["System"])

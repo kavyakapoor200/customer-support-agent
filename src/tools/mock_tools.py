@@ -102,6 +102,9 @@ def escalate_to_team(ticket_id: str, target_team: str, priority: str, notes: str
         try:
             import httpx
             slack_payload = {
+                "name": f"🚨 [{normalized_priority}] Escalation #{ticket_id}: {notes[:60]}",
+                "price": 0,
+                "qty": 1,
                 "text": f"🚨 *Support Escalation [{normalized_priority}]* — Ticket #{ticket_id}",
                 "blocks": [
                     {

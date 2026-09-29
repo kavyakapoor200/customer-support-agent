@@ -1,5 +1,4 @@
 """Application settings loaded from environment variables and .env file."""
-from functools import lru_cache
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -41,7 +40,10 @@ class Settings(BaseSettings):
     )
 
 
-@lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Returns cached application settings instance."""
+    """Returns application settings instance dynamically loading latest .env."""
     return Settings()
+
+
+get_settings.cache_clear = lambda: None
+

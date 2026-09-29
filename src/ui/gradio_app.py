@@ -83,6 +83,9 @@ def create_gradio_ui() -> gr.Blocks:
                 try:
                     now_str = datetime.datetime.now(datetime.UTC).strftime("%H:%M:%S UTC")
                     payload = {
+                        "name": f"🔔 Webhook Test Ping ({now_str}) - Connected!",
+                        "price": 0,
+                        "qty": 1,
                         "text": f"🚨 *Manual Test Alert from Support Portal* ({now_str})",
                         "blocks": [
                             {
@@ -237,7 +240,33 @@ def create_gradio_ui() -> gr.Blocks:
                         f"{t.ticket_id} | [{t.priority}] | {t.department.upper()} | {t.detected_language} | {t.text[:35]}..."
                         for t in pending
                     ]
-                    return gr.Dropdown(choices=options, value=options[0] if options else None)
+                    first_val = options[0] if options else None
+                    if first_val and pending:
+                        item = pending[0]
+                        info_md = (
+                            f"#### Escalated Ticket: `{item.ticket_id}` (Customer: `{item.customer_id}`)\n"
+                            f"* **Severity Priority:** **{item.priority}**\n"
+                            f"* **Message:** \"{item.text}\"\n"
+                            f"* **Department:** `{item.department.upper()}`\n"
+                            f"* **Urgency Score:** `{item.urgency_score:.1f}/3`\n"
+                            f"* **Churn Risk:** `{item.churn_risk:.1%}`\n"
+                            f"* **Detected Language:** `{item.detected_language}`\n"
+                            f"* **Escalation Reason:** {item.reason}"
+                        )
+                        return (
+                            gr.Dropdown(choices=options, value=first_val),
+                            info_md,
+                            item.draft_reply or "",
+                            "",
+                            "",
+                        )
+                    return (
+                        gr.Dropdown(choices=options, value=None),
+                        "*No tickets currently waiting for review. Submit a P0 ticket in Tab 1 to see it here.*",
+                        "",
+                        "",
+                        "",
+                    )
 
                 async def inspect_ticket(selected_opt: str | None):
                     if not selected_opt:
@@ -291,7 +320,10 @@ def create_gradio_ui() -> gr.Blocks:
                 async def handle_reject_click(sel: str, draft: str, notes: str):
                     return await process_human_verdict(sel, draft, notes, approved=False)
 
-                btn_refresh.click(refresh_queue, outputs=[pending_dropdown])
+                btn_refresh.click(
+                    refresh_queue,
+                    outputs=[pending_dropdown, rev_info, rev_draft, rev_notes, rev_result],
+                )
                 pending_dropdown.change(inspect_ticket, inputs=[pending_dropdown], outputs=[rev_info, rev_draft, rev_notes])
                 btn_approve.click(
                     handle_approve_click,
