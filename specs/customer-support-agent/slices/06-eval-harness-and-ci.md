@@ -6,11 +6,10 @@ Delivers the automated evaluation harness, statistical calibration metrics (ECE)
 ## 2. API Seam & Module Ownership
 * **Module:** `eval/` and `.github/workflows/`
 * **Synthetic Evaluation Dataset (`eval/data/saas_tickets_eval.json`):**
-  * 100 curated, non-contaminated SaaS support tickets:
+  * 100 curated synthetic SaaS support tickets:
     * 50 English, 35 Hinglish, 15 Hindi (Devanagari).
     * Categories: `refund`, `cancel_subscription`, `billing_dispute`, `account_escalation`, `general_inquiry`.
     * Ground truth: `expected_action`, `ground_truth_policy_id`, `should_auto_execute: bool`.
-    * Contamination firewall: Strictly zero Banking77 or AG News samples.
 * **Eval Metric Runners (`eval/`):**
   * `eval/metrics/calibration.py`: Computes Expected Calibration Error (ECE) across binned confidence scores.
   * `eval/metrics/invariance.py`: Tests option-order flip rate by permuting candidate action list $[A, B, C]$ vs $[C, B, A]$.

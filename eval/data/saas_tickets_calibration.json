@@ -1,0 +1,302 @@
+[
+  {
+    "ticket_id": "CALIB-EN-001",
+    "text": "I was mistakenly charged for two seats instead of one, please refund the $30 overcharge",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 30.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "CALIB-EN-002",
+    "text": "Please cancel my monthly pro membership before the upcoming renewal next Tuesday",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_cancellation_policy"
+  },
+  {
+    "ticket_id": "CALIB-EN-003",
+    "text": "There is a fraudulent charge of $450 from a card I never authorized, investigate immediately",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 450.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "03_billing_dispute_protocol"
+  },
+  {
+    "ticket_id": "CALIB-EN-004",
+    "text": "Our entire engineering team is locked out of Okta SAML SSO, production build is blocked!",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "04_p0_incident_sla"
+  },
+  {
+    "ticket_id": "CALIB-EN-005",
+    "text": "Where can I find documentation on your webhook retry backoff policy?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "05_general_support_kb"
+  },
+  {
+    "ticket_id": "CALIB-EN-006",
+    "text": "Accidental annual subscription purchase made 2 days ago, please reverse charge and refund $120",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 120.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "CALIB-EN-007",
+    "text": "I do not wish to continue using the software, terminate my account and subscription immediately",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_cancellation_policy"
+  },
+  {
+    "ticket_id": "CALIB-EN-008",
+    "text": "My credit card statement shows two unauthorized deductions of $99 each, raising a dispute",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 198.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "03_billing_dispute_protocol"
+  },
+  {
+    "ticket_id": "CALIB-EN-009",
+    "text": "Critical incident: Our workspace admin credentials have been compromised, disable sessions now",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "04_p0_incident_sla"
+  },
+  {
+    "ticket_id": "CALIB-EN-010",
+    "text": "Can you provide the IP whitelist ranges for European region endpoints?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "05_general_support_kb"
+  },
+  {
+    "ticket_id": "CALIB-EN-011",
+    "text": "Refund request for $15 due to service downtime experienced yesterday during my billing cycle",
+    "language": "english",
+    "expected_action": "refund",
+    "amount_usd": 15.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "CALIB-EN-012",
+    "text": "Please downgrade me to the free tier and cancel auto-renew on my credit card",
+    "language": "english",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_cancellation_policy"
+  },
+  {
+    "ticket_id": "CALIB-EN-013",
+    "text": "I am disputing an unexpected charge of $350 on invoice INV-9921 which we never approved",
+    "language": "english",
+    "expected_action": "billing_dispute",
+    "amount_usd": 350.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "03_billing_dispute_protocol"
+  },
+  {
+    "ticket_id": "CALIB-EN-014",
+    "text": "All API calls are returning 500 internal server error for our production tenant",
+    "language": "english",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "04_p0_incident_sla"
+  },
+  {
+    "ticket_id": "CALIB-EN-015",
+    "text": "How do I invite teammates to my team workspace under our current license?",
+    "language": "english",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "05_general_support_kb"
+  },
+  {
+    "ticket_id": "CALIB-HN-001",
+    "text": "Bhai galti se double payment kat gaya card se, please $25 refund bhej do",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 25.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "CALIB-HN-002",
+    "text": "Mujhe abhi service use nahi karni, mera pro plan turant cancel karo",
+    "language": "hinglish",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_cancellation_policy"
+  },
+  {
+    "ticket_id": "CALIB-HN-003",
+    "text": "Bank statement me unauthorized $200 charge dikh raha hai jo maine kabhi authorize nahi kiya, dispute file karna hai",
+    "language": "hinglish",
+    "expected_action": "billing_dispute",
+    "amount_usd": 200.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "03_billing_dispute_protocol"
+  },
+  {
+    "ticket_id": "CALIB-HN-004",
+    "text": "Emergency hai! Hamara enterprise login completely down ho gaya hai, koi login nahi kar pa raha",
+    "language": "hinglish",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "04_p0_incident_sla"
+  },
+  {
+    "ticket_id": "CALIB-HN-005",
+    "text": "Aapke software ka pricing model kya hai per user basis pe?",
+    "language": "hinglish",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "05_general_support_kb"
+  },
+  {
+    "ticket_id": "CALIB-HN-006",
+    "text": "Mera duplicate subscription charge $49 refund kardo, 3 din pehle hi deduct hua tha",
+    "language": "hinglish",
+    "expected_action": "refund",
+    "amount_usd": 49.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "CALIB-HN-007",
+    "text": "Renew nahi karna hai mujhe next month, please subscription cancel kar dijiye",
+    "language": "hinglish",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_cancellation_policy"
+  },
+  {
+    "ticket_id": "CALIB-HN-008",
+    "text": "Card se bina permission ke amount cut gaya $150, fraud transaction lag raha hai",
+    "language": "hinglish",
+    "expected_action": "billing_dispute",
+    "amount_usd": 150.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "03_billing_dispute_protocol"
+  },
+  {
+    "ticket_id": "CALIB-HN-009",
+    "text": "Bhai production database sync fail ho gaya hai aur users locked out hain, please escalate",
+    "language": "hinglish",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "04_p0_incident_sla"
+  },
+  {
+    "ticket_id": "CALIB-HN-010",
+    "text": "CSV export feature kaise chalega? Help center me guide share karo please",
+    "language": "hinglish",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "05_general_support_kb"
+  },
+  {
+    "ticket_id": "CALIB-DEV-001",
+    "text": "नमस्ते, मेरे खाते से गलती से $40 कट गया है, कृपया मेरी धनराशि वापस (रिफंड) करें",
+    "language": "hindi",
+    "expected_action": "refund",
+    "amount_usd": 40.0,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "01_refund_sla"
+  },
+  {
+    "ticket_id": "CALIB-DEV-002",
+    "text": "कृपया मेरी मासिक सदस्यता तुरंत समाप्त (कैंसिल) करें",
+    "language": "hindi",
+    "expected_action": "cancel_subscription",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "02_cancellation_policy"
+  },
+  {
+    "ticket_id": "CALIB-DEV-003",
+    "text": "मेरे बैंक खाते से $300 का अनधिकृत लेनदेन हुआ है जिसे मैंने स्वीकार नहीं किया, शिकायत दर्ज करें",
+    "language": "hindi",
+    "expected_action": "billing_dispute",
+    "amount_usd": 300.0,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": true,
+    "ground_truth_policy_id": "03_billing_dispute_protocol"
+  },
+  {
+    "ticket_id": "CALIB-DEV-004",
+    "text": "अत्यंत महत्वपूर्ण: हमारा पूरा डेटाबेस बंद हो गया है और कोई भी कर्मचारी लॉग इन नहीं कर पा रहा है",
+    "language": "hindi",
+    "expected_action": "account_escalation",
+    "amount_usd": null,
+    "should_auto_execute": false,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "04_p0_incident_sla"
+  },
+  {
+    "ticket_id": "CALIB-DEV-005",
+    "text": "क्या आप मुझे नए उपयोगकर्ताओं को जोड़ने के नियम और दस्तावेज बता सकते हैं?",
+    "language": "hindi",
+    "expected_action": "general_inquiry",
+    "amount_usd": null,
+    "should_auto_execute": true,
+    "is_fraud_or_dispute": false,
+    "ground_truth_policy_id": "05_general_support_kb"
+  }
+]

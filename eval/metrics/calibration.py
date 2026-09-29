@@ -40,3 +40,86 @@ def compute_ece(confidences: Sequence[float], accuracies: Sequence[bool], n_bins
         ece += (bin_size / total_samples) * abs(bin_acc - bin_conf)
 
     return round(ece, 4)
+
+
+def fit_temperature_scaling(
+    probabilities_list: Sequence[dict[str, float]],
+    expected_actions: Sequence[str],
+    candidate_actions: Sequence[str],
+) -> float:
+    """Fits optimal temperature scalar T > 0 by minimizing Negative Log-Likelihood (NLL)
+
+    on a held-out calibration split.
+
+    Args:
+        probabilities_list: List of predicted probability distributions.
+        expected_actions: Ground truth label per ticket.
+        candidate_actions: List of possible candidate labels.
+
+    Returns:
+        Optimal temperature parameter T > 0.
+    """
+    import numpy as np
+
+    if not probabilities_list or len(probabilities_list) != len(expected_actions):
+        return 1.0
+
+    classes = list(candidate_actions)
+
+    def nll(temp: float) -> float:
+        loss = 0.0
+        for probs, expected in zip(probabilities_list, expected_actions, strict=False):
+            p_vec = np.array([probs.get(c, 1e-12) for c in classes], dtype=float)
+            p_vec = np.clip(p_vec, 1e-12, 1.0)
+            logits = np.log(p_vec)
+            scaled = logits / temp
+            scaled -= np.max(scaled)
+            exp_scaled = np.exp(scaled)
+            calibrated_p = exp_scaled / np.sum(exp_scaled)
+            target_idx = classes.index(expected) if expected in classes else 0
+            loss -= np.log(max(calibrated_p[target_idx], 1e-12))
+        return float(loss / len(probabilities_list))
+
+    best_t = 1.0
+    best_loss = float("inf")
+    # Fine 1D search over physically plausible temperature bounds
+    for t_cand in np.linspace(0.1, 5.0, 491):
+        loss_val = nll(float(t_cand))
+        if loss_val < best_loss:
+            best_loss = loss_val
+            best_t = float(t_cand)
+
+    return round(best_t, 4)
+
+
+def apply_temperature_scaling(
+    probabilities: dict[str, float],
+    candidate_actions: Sequence[str],
+    temperature: float,
+) -> dict[str, float]:
+    """Applies temperature scaling to a single probability distribution.
+
+    Args:
+        probabilities: Mapping of candidate action to raw probability.
+        candidate_actions: Order of classes.
+        temperature: Calibrated scalar T > 0.
+
+    Returns:
+        Calibrated probability distribution dictionary.
+    """
+    import numpy as np
+
+    if temperature <= 0.0 or abs(temperature - 1.0) < 1e-6:
+        return probabilities
+
+    classes = list(candidate_actions)
+    p_vec = np.array([probabilities.get(c, 1e-12) for c in classes], dtype=float)
+    p_vec = np.clip(p_vec, 1e-12, 1.0)
+    logits = np.log(p_vec)
+    scaled = logits / temperature
+    scaled -= np.max(scaled)
+    exp_scaled = np.exp(scaled)
+    calibrated_vec = exp_scaled / np.sum(exp_scaled)
+
+    return {c: round(float(calibrated_vec[i]), 4) for i, c in enumerate(classes)}
+

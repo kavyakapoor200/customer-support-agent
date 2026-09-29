@@ -71,3 +71,34 @@ async def test_eval_p50_latency():
     """Asserts that decision inference P50 latency is under 50.0 ms."""
     results = await run_benchmark(backend="mock")
     assert results["p50_latency_ms"] < 50.0
+
+
+def test_temperature_scaling_calibration():
+    """Validates that temperature scaling adjusts overconfident probabilities and reduces ECE."""
+    from eval.metrics.calibration import (
+        apply_temperature_scaling,
+        compute_ece,
+        fit_temperature_scaling,
+    )
+
+    candidates = ["refund", "cancel_subscription", "billing_dispute"]
+    # Simulated overconfident model: 98% confidence on all, but only 66% correct
+    probs = [
+        {"refund": 0.98, "cancel_subscription": 0.01, "billing_dispute": 0.01},
+        {"refund": 0.98, "cancel_subscription": 0.01, "billing_dispute": 0.01},
+        {"refund": 0.98, "cancel_subscription": 0.01, "billing_dispute": 0.01},
+    ]
+    labels = ["refund", "refund", "cancel_subscription"]  # 2 correct, 1 wrong
+
+    raw_ece = compute_ece([0.98, 0.98, 0.98], [True, True, False])
+    assert raw_ece > 0.30
+
+    temp = fit_temperature_scaling(probs, labels, candidates)
+    assert temp > 1.0  # Overconfidence requires T > 1.0 to soften
+
+    scaled_probs = [apply_temperature_scaling(p, candidates, temp) for p in probs]
+    scaled_confs = [p["refund"] for p in scaled_probs]
+    calib_ece = compute_ece(scaled_confs, [True, True, False])
+
+    assert calib_ece < raw_ece
+
