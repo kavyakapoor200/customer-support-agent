@@ -37,5 +37,6 @@ COPY --chown=user . .
 # Hugging Face Spaces standard port
 EXPOSE 7860
 
-# Run FastAPI with mounted Gradio UI on port 7860
-CMD ["uv", "run", "uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Run FastAPI with mounted Gradio UI on dynamic $PORT (Render / Cloud / Local)
+CMD ["sh", "-c", "uv run uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-7860}"]
+
