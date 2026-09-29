@@ -1,11 +1,13 @@
 """Base interfaces and data contracts for DecisionEngine backends."""
+import math
 from abc import ABC, abstractmethod
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
 
 class DecisionOutput(BaseModel):
-    """Calibrated decision result returned by any DecisionEngine backend."""
+    """Calibrated decision result returned by legacy candidate action classification."""
     action: str = Field(..., description="Top classified action candidate.")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Calibrated confidence score of the top action.")
     probabilities: dict[str, float] = Field(
@@ -31,6 +33,24 @@ class DecisionOutput(BaseModel):
         return v
 
 
+class JevDecisionResult(BaseModel):
+    """Calibrated decision primitives from Jev / Kev System 1: Choice, Score, and Noul."""
+    department: str = Field(..., description="Department choice: billing, technical, sales, general.")
+    department_confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    department_probabilities: dict[str, float] = Field(default_factory=dict)
+    urgency_score: float = Field(..., ge=0.0, le=3.0, description="Score primitive from 0 to 3.")
+    urgency_level: int = Field(..., ge=0, le=3, description="Rounded urgency level 0, 1, 2, or 3.")
+    urgency_description: str = Field(..., description="Human-readable urgency label.")
+    urgency_probabilities: dict[int, float] = Field(default_factory=dict)
+    churn_risk_probability: float = Field(..., ge=0.0, le=1.0, description="Noul primitive for churn risk.")
+    priority: str = Field(..., description="'P0', 'P1', or 'P2'")
+    is_escalation: bool = Field(..., description="True if ticket requires immediate human escalation.")
+    escalation_reason: str | None = Field(default=None, description="Reason if escalated to human.")
+    engine_name: str = Field(default="kev", description="Inference engine name.")
+    latency_ms: float = Field(default=0.0, ge=0.0)
+    raw_answers: dict[str, Any] = Field(default_factory=dict)
+
+
 class BaseDecisionEngine(ABC):
     """Abstract base class that all System 1 and baseline decision engines implement."""
 
@@ -39,20 +59,15 @@ class BaseDecisionEngine(ABC):
 
     @abstractmethod
     async def decide(self, text: str, candidate_actions: list[str]) -> DecisionOutput:
-        """Evaluates input text against candidate actions and returns calibrated probabilities.
+        """Evaluates input text against candidate actions and returns calibrated probabilities."""
 
-        Args:
-            text: Customer ticket or message text.
-            candidate_actions: List of valid action strings.
-
-        Returns:
-            DecisionOutput with the chosen action, confidence, and full distribution.
-        """
+    @abstractmethod
+    async def triage(self, text: str) -> JevDecisionResult:
+        """Evaluates Jev primitives (Choice Department, Score Urgency, Noul Churn) to derive priority."""
 
     @staticmethod
     def softmax(scores: dict[str, float], temperature: float = 1.0) -> dict[str, float]:
         """Converts raw scores into a normalized probability distribution using softmax."""
-        import math
         if not scores:
             return {}
         max_score = max(scores.values())

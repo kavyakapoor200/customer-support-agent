@@ -6,7 +6,7 @@ import httpx
 
 from src.core.config import get_settings
 from src.decision_engine.backends.mock import MockDecisionEngine
-from src.decision_engine.base import BaseDecisionEngine, DecisionOutput
+from src.decision_engine.base import BaseDecisionEngine, DecisionOutput, JevDecisionResult
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,6 @@ class KevDecisionEngine(BaseDecisionEngine):
             for act in candidate_actions
         }
 
-        # TypeSafe & Kev-0.8B /v1/systemone API contract
         payload = {
             "model": "kev-latest",
             "state": text,
@@ -64,7 +63,6 @@ class KevDecisionEngine(BaseDecisionEngine):
 
             latency = (time.perf_counter() - start_time) * 1000.0
 
-            # Parse TypeSafe/Kev structured answer
             answers = data.get("answers", {})
             action_choice = answers.get("action", {})
             if isinstance(action_choice, dict) and "choice" in action_choice:
@@ -93,7 +91,6 @@ class KevDecisionEngine(BaseDecisionEngine):
                     exc,
                 )
                 output = await self._mock_engine.decide(text, candidate_actions)
-                # Retain engine_name as kev-fallback for observability
                 return DecisionOutput(
                     action=output.action,
                     confidence=output.confidence,
@@ -102,6 +99,142 @@ class KevDecisionEngine(BaseDecisionEngine):
                     engine_name="kev-fallback",
                     latency_ms=output.latency_ms,
                 )
-            raise ConnectionError(
-                f"Failed to connect to Kev-0.8B endpoint at {self.endpoint_url}: {exc}"
-            ) from exc
+            raise
+
+    async def triage(self, text: str) -> JevDecisionResult:
+        """Evaluates Jev primitives (Department Choice, Urgency Score, Churn Risk Noul) on Kev."""
+        start_time = time.perf_counter()
+        payload = {
+            "model": "kev-latest",
+            "state": text,
+            "questions": {
+                "department": {
+                    "type": "choice",
+                    "instructions": "Which department should handle this customer inquiry?",
+                    "criteria": {
+                        "billing": "Invoice, chargeback, subscription, refund, payment issues",
+                        "technical": "Software bugs, API failures, service downtime, errors",
+                        "sales": "Plan upgrades, pricing inquiries, enterprise licensing",
+                        "general": "General questions, documentation, feedback",
+                    },
+                },
+                "urgency": {
+                    "type": "score",
+                    "instructions": "Rate the customer's operational urgency and impact from 0 to 3.",
+                    "criteria": [
+                        "0: General question, no business impact",
+                        "1: Minor bug, workaround available",
+                        "2: Significant blocker or time-sensitive task",
+                        "3: Critical downtime, financial loss, or security issue",
+                    ],
+                },
+                "churn_risk": {
+                    "type": "noul",
+                    "instructions": "Is the customer at risk of churning, cancelling, or threatening legal action?",
+                },
+            },
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"{self.endpoint_url.rstrip('/')}/v1/systemone",
+                    json=payload,
+                )
+                response.raise_for_status()
+                data = response.json()
+
+            latency = (time.perf_counter() - start_time) * 1000.0
+            answers = data.get("answers", {})
+
+            # Department Choice
+            dept_ans = answers.get("department", {})
+            dept = dept_ans.get("choice", "general")
+            dept_conf = float(dept_ans.get("confidence", 0.9))
+            dept_probs = dept_ans.get("probabilities", {dept: dept_conf})
+
+            # Urgency Score
+            urgency_ans = answers.get("urgency", {})
+            urgency_score = float(urgency_ans.get("score", 1.0))
+            urgency_probs = urgency_ans.get("probabilities", {})
+
+            # Churn Risk Noul
+            churn_ans = answers.get("churn_risk", {})
+            churn_prob = float(churn_ans.get("noul", 0.05))
+
+            return self._build_triage_result(
+                dept=dept,
+                dept_conf=dept_conf,
+                dept_probs=dept_probs,
+                urgency_score=urgency_score,
+                urgency_probs=urgency_probs,
+                churn_prob=churn_prob,
+                raw_answers=answers,
+                latency_ms=latency,
+            )
+
+        except (httpx.RequestError, httpx.HTTPStatusError) as exc:
+            if self.fallback_to_mock and self._mock_engine:
+                logger.warning(
+                    "Kev triage failed on %s (%s). Falling back to mock triage.",
+                    self.endpoint_url,
+                    exc,
+                )
+                res = await self._mock_engine.triage(text)
+                res.engine_name = "kev-fallback"
+                return res
+            raise
+
+    def _build_triage_result(
+        self,
+        dept: str,
+        dept_conf: float,
+        dept_probs: dict[str, float],
+        urgency_score: float,
+        urgency_probs: dict[int, float],
+        churn_prob: float,
+        raw_answers: dict,
+        latency_ms: float,
+    ) -> JevDecisionResult:
+        urgency_map = {
+            0: "Low (P2 - Informational)",
+            1: "Normal (P2 - Minor/Standard)",
+            2: "High (P1 - Imp/Urgent)",
+            3: "Critical (P0 - Immediate Attention)",
+        }
+        level = min(3, max(0, round(urgency_score)))
+
+        if churn_prob >= 0.70 or level == 3:
+            priority = "P0"
+            is_escalation = True
+            reasons = []
+            if churn_prob >= 0.70:
+                reasons.append(f"High Churn/Legal Risk ({churn_prob:.1%})")
+            if level == 3:
+                reasons.append(f"Critical Severity ({urgency_score:.1f}/3)")
+            escalation_reason = " & ".join(reasons)
+        elif level == 2:
+            priority = "P1"
+            is_escalation = False
+            escalation_reason = None
+        else:
+            priority = "P2"
+            is_escalation = False
+            escalation_reason = None
+
+        return JevDecisionResult(
+            department=dept,
+            department_confidence=round(dept_conf, 4),
+            department_probabilities=dept_probs,
+            urgency_score=round(urgency_score, 2),
+            urgency_level=level,
+            urgency_description=urgency_map.get(level, "Normal"),
+            urgency_probabilities=urgency_probs,
+            churn_risk_probability=round(churn_prob, 3),
+            priority=priority,
+            is_escalation=is_escalation,
+            escalation_reason=escalation_reason,
+            engine_name=self.engine_name,
+            latency_ms=round(latency_ms, 2),
+            raw_answers=raw_answers,
+        )

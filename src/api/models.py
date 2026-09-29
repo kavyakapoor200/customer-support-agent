@@ -18,14 +18,19 @@ class TicketResponse(BaseModel):
     """Standardized response from ticket processing."""
     ticket_id: str
     status: str = Field(..., description="'completed' or 'needs_review'.")
-    decision_action: str
-    decision_confidence: float
+    priority: str = Field(default="P2", description="'P0', 'P1', or 'P2' severity level.")
+    department: str | None = Field(default=None, description="Classified department (billing, technical, sales, general).")
+    urgency_score: float | None = Field(default=None, description="Calibrated urgency score (0 to 3).")
+    urgency_description: str | None = Field(default=None, description="Urgency label.")
+    churn_risk_probability: float | None = Field(default=None, description="Churn risk probability (0.0 to 1.0).")
+    triage_action: str | None = Field(default=None, description="'ESCALATE_HUMAN' or 'AUTOMATED_LLM_RESPONSE'.")
     reply: str | None = None
-    tool_result: dict[str, Any] | None = None
-    gating_outcome: str
     detected_language: str
     requires_human_review: bool
-    priority: str = Field(default="P2", description="'P0', 'P1', or 'P2' severity level.")
+    tool_result: dict[str, Any] | None = None
+    gating_outcome: str
+    decision_action: str = "general"
+    decision_confidence: float = 1.0
     trajectory: list[dict[str, Any]] = Field(default_factory=list)
 
 
@@ -42,10 +47,13 @@ class PendingTicketItem(BaseModel):
     customer_id: str
     text: str
     detected_language: str
-    action: str
-    confidence: float
-    amount: float | None
-    reason: str
-    priority: str = Field(default="P2", description="'P0', 'P1', or 'P2' severity level.")
-    draft_reply: str | None
-    retrieved_policies: list[dict[str, Any]]
+    priority: str = Field(default="P0", description="'P0', 'P1', or 'P2' severity level.")
+    department: str = "general"
+    urgency_score: float = 0.0
+    churn_risk: float = 0.0
+    action: str = "escalate"
+    confidence: float = 1.0
+    amount: float | None = None
+    reason: str = "P0 Escalation"
+    draft_reply: str | None = None
+    retrieved_policies: list[dict[str, Any]] = Field(default_factory=list)

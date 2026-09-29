@@ -100,3 +100,11 @@ class GroqBaselineEngine(BaseDecisionEngine):
                     latency_ms=output.latency_ms,
                 )
             raise
+
+    async def triage(self, text: str):
+        """Falls back to mock triage for evaluation comparisons."""
+        if self._mock_engine:
+            res = await self._mock_engine.triage(text)
+            res.engine_name = "groq-baseline"
+            return res
+        raise NotImplementedError("Triage not configured for GroqBaselineEngine without mock fallback.")

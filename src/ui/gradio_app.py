@@ -8,13 +8,61 @@ from src.api.models import ReviewActionRequest, TicketIntakeRequest
 from src.api.service import workflow_service
 from src.core.config import get_settings
 
+CUSTOM_CSS = """
+/* Enterprise Premium Theme Adjustments */
+body, .gradio-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+.ticket-panel {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(226, 232, 240, 0.2);
+    padding: 18px;
+    margin-top: 12px;
+}
+
+.metric-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-p0 {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #f87171;
+}
+
+.badge-p1 {
+    background-color: #ffedd5;
+    color: #c2410c;
+    border: 1px solid #fb923c;
+}
+
+.badge-p2 {
+    background-color: #ecfdf5;
+    color: #047857;
+    border: 1px solid #34d399;
+}
+"""
+
 
 def create_gradio_ui() -> gr.Blocks:
-    """Builds the dual-tab Gradio web interface with webhook diagnostics and priority triage."""
-    with gr.Blocks(title="Customer Support Agent Portal") as demo:
+    """Builds the query-based two-speed support UI matching Jev experimentation."""
+    theme = gr.themes.Soft(
+        primary_hue=gr.themes.colors.indigo,
+        secondary_hue=gr.themes.colors.slate,
+        neutral_hue=gr.themes.colors.slate,
+        font=[gr.themes.GoogleFont("Inter"), "system-ui", "sans-serif"],
+    )
+
+    with gr.Blocks(title="Two-Speed Customer Support Agent", theme=theme, css=CUSTOM_CSS) as demo:
         gr.Markdown(
-            "# 🛡️ Customer Support AI Agent\n"
-            "**System 1 Gated Decision Engine · Multi-tier Severity Triage (P0 / P1 / P2) · Human-in-the-Loop Supervision**"
+            "# ⚡ Customer Support AI Agent\n"
+            "**Two-Speed Architecture: Fast Calibrated System 1 Decision Engine (Choice, Score, Noul) + System 2 Open LLM Responder (Groq)**"
         )
 
         # ======================================================================
@@ -45,7 +93,7 @@ def create_gradio_ui() -> gr.Blocks:
                                 "type": "section",
                                 "text": {
                                     "type": "mrkdwn",
-                                    "text": f"✅ *Webhook is LIVE & CONNECTED!*\n*Time:* `{now_str}`\n*Target:* `{cfg.SLACK_WEBHOOK_URL}`\n*Status:* Ready for P0, P1, and P2 alerts.",
+                                    "text": f"✅ *Webhook is LIVE & CONNECTED!*\n*Time:* `{now_str}`\n*Target:* `{cfg.SLACK_WEBHOOK_URL}`\n*Status:* Ready for P0 Escalation alerts.",
                                 },
                             },
                         ],
@@ -69,57 +117,92 @@ def create_gradio_ui() -> gr.Blocks:
                     with gr.Column(scale=3):
                         user_input = gr.Textbox(
                             label="Customer Message / Query",
-                            placeholder="Type your message here (English, Hinglish, French, Spanish, Hindi, etc.)...",
-                            lines=5,
+                            placeholder="Type any inquiry, question, bug report, or issue in English, Hinglish, French, Spanish, Hindi, etc...",
+                            lines=6,
                         )
                         with gr.Row():
                             btn_send = gr.Button("Submit Ticket", variant="primary")
                             btn_clear = gr.Button("Clear")
 
-                        gr.Markdown("#### Quick Test Scenarios (P0 / P1 / P2)")
+                        gr.Markdown("#### Sample Customer Inquiries (from Jev Experimentation)")
                         with gr.Row():
-                            btn_scen_auto = gr.Button("💰 Refund $35 (P2 Auto)", size="sm")
-                            btn_scen_cancel = gr.Button("❌ Cancel Plan (P2 Auto)", size="sm")
-                            btn_scen_p1 = gr.Button("⚠️ Disputed Charge $180 (P1 Review)", size="sm")
-                            btn_scen_p0 = gr.Button("🚨 SSO Lockout (P0 Emergency)", size="sm")
+                            btn_scen_p0 = gr.Button("🚨 Outage & Churn (P0 Escalation)", size="sm")
+                            btn_scen_p1 = gr.Button("⚙️ API 403 Blocker (P1 High Urgency)", size="sm")
+                            btn_scen_p2 = gr.Button("📄 VAT Invoice Copy (P2 Routine)", size="sm")
 
                     with gr.Column(scale=2):
                         out_reply = gr.Textbox(label="Agent Response", lines=6, interactive=False)
+                        out_trace = gr.Markdown("### 📋 Pipeline Telemetry\n*Submit a query to inspect live decision stages.*")
                         with gr.Accordion("🛠️ Technical Details (API Payload)", open=False):
                             out_details = gr.JSON(label="Payload")
 
                 async def handle_submit(text: str):
                     if not text.strip():
-                        return "Please enter a message.", {}
+                        return "Please enter a message.", "*No query provided.*", {}
 
-                    # Automatically generate customer reference without forcing manual input
                     auto_cust_id = f"CUST-{uuid.uuid4().hex[:6].upper()}"
                     req = TicketIntakeRequest(text=text, customer_id=auto_cust_id)
                     res = await workflow_service.intake_ticket(req)
 
-                    return res.reply or "", res.model_dump()
+                    priority_str = getattr(res, "priority", "P2")
+                    if priority_str == "P0":
+                        p_badge = "🔴 **P0 (CRITICAL ESCALATION)**"
+                    elif priority_str == "P1":
+                        p_badge = "🟠 **P1 (HIGH URGENCY)**"
+                    else:
+                        p_badge = "🟢 **P2 (ROUTINE)**"
 
-                btn_send.click(handle_submit, inputs=[user_input], outputs=[out_reply, out_details])
+                    action_str = getattr(res, "triage_action", "AUTOMATED_LLM_RESPONSE")
+                    if action_str == "ESCALATE_HUMAN":
+                        act_badge = "🚨 **ESCALATED TO HUMAN DESK**"
+                    else:
+                        act_badge = "🤖 **AUTOMATED LLM RESPONSE (Groq)**"
+
+                    dept_str = getattr(res, "department", "general")
+                    urgency_val = getattr(res, "urgency_score", 0.0)
+                    urgency_desc = getattr(res, "urgency_description", "Normal")
+                    churn_val = getattr(res, "churn_risk_probability", 0.0)
+
+                    trace_md = (
+                        f"### 📋 Pipeline Telemetry Trace\n"
+                        f"* **Detected Language:** `{res.detected_language.upper()}`\n"
+                        f"* **Department (Choice):** `{dept_str.upper()}`\n"
+                        f"* **Urgency (Score 0-3):** `{urgency_val:.1f}/3` — *{urgency_desc}*\n"
+                        f"* **Churn Risk (Noul):** `{churn_val:.1%}` probability\n"
+                        f"* **Derived Priority:** {p_badge}\n"
+                        f"* **Triage Action:** {act_badge}\n"
+                        f"* **Ticket Reference:** `{res.ticket_id}`"
+                    )
+
+                    return res.reply or "", trace_md, res.model_dump()
+
+                btn_send.click(handle_submit, inputs=[user_input], outputs=[out_reply, out_trace, out_details])
                 btn_clear.click(
-                    lambda: ("", "", {}),
-                    outputs=[user_input, out_reply, out_details],
+                    lambda: ("", "### 📋 Pipeline Telemetry\n*Cleared.*", {}),
+                    outputs=[user_input, out_trace, out_details],
                 )
 
-                # Quick Scenario wiring
-                btn_scen_auto.click(
-                    lambda: "I was charged twice yesterday for $35.00, please refund my money.",
-                    outputs=[user_input],
-                )
-                btn_scen_cancel.click(
-                    lambda: "I want to cancel my subscription at the end of the current billing cycle.",
+                # Quick Sample wiring from Jev Experimentation
+                btn_scen_p0.click(
+                    lambda: (
+                        "I've had enough of your broken API! Our production system went down for 4 hours today "
+                        "and we lost over $30,000 in transactions. If this is not resolved immediately, I am cancelling "
+                        "our enterprise contract and instructing our legal counsel to file for SLA breach."
+                    ),
                     outputs=[user_input],
                 )
                 btn_scen_p1.click(
-                    lambda: "I was charged $180 unexpectedly for a team license that I never authorized. Reverse this charge immediately.",
+                    lambda: (
+                        "Hi team, our developers are blocked trying to configure webhook endpoints on the sandbox environment. "
+                        "The endpoint returns HTTP 403 Forbidden even with valid bearer tokens. Can you check our account permissions?"
+                    ),
                     outputs=[user_input],
                 )
-                btn_scen_p0.click(
-                    lambda: "URGENT! Entire engineering team locked out of Okta SSO right now. P0 security blocker.",
+                btn_scen_p2.click(
+                    lambda: (
+                        "Hello, could you please send me a PDF copy of last month's VAT invoice for our accounting records? "
+                        "Thanks so much!"
+                    ),
                     outputs=[user_input],
                 )
 
@@ -127,23 +210,23 @@ def create_gradio_ui() -> gr.Blocks:
             # Tab 2: Agent Review Desk (Human-In-The-Loop)
             # ==================================================================
             with gr.Tab("🧑‍💼 Agent Review Desk"):
-                gr.Markdown("### Human-In-The-Loop Review Queue (Paused Tickets)")
+                gr.Markdown("### Human-In-The-Loop Review Queue (Paused P0 Escalations)")
 
                 with gr.Row():
                     btn_refresh = gr.Button("🔄 Refresh Pending Queue", size="sm")
 
-                pending_dropdown = gr.Dropdown(label="Select Pending Ticket to Inspect", choices=[])
+                pending_dropdown = gr.Dropdown(label="Select Escalated Ticket to Inspect", choices=[])
 
                 with gr.Group():
                     rev_info = gr.Markdown("*Select a ticket from the dropdown above to inspect details.*")
                     rev_draft = gr.Textbox(label="Customer Reply (Editable by Reviewer)", lines=4)
                     rev_notes = gr.Textbox(
                         label="Reviewer Justification Notes",
-                        placeholder="e.g. Approved exception after reviewing payment receipt.",
+                        placeholder="e.g. Account unlocked, SLA credit issued after reviewing incident.",
                     )
 
                     with gr.Row():
-                        btn_approve = gr.Button("✅ Approve & Execute Action (Dispatches Tool & Webhook)", variant="primary")
+                        btn_approve = gr.Button("✅ Approve & Send Response", variant="primary")
                         btn_reject = gr.Button("❌ Reject & Deny Request", variant="stop")
 
                     rev_result = gr.Markdown("")
@@ -151,7 +234,7 @@ def create_gradio_ui() -> gr.Blocks:
                 async def refresh_queue():
                     pending = await workflow_service.list_pending()
                     options = [
-                        f"{t.ticket_id} | [{t.priority}] | {t.action.upper()} | {t.detected_language} | {t.text[:35]}..."
+                        f"{t.ticket_id} | [{t.priority}] | {t.department.upper()} | {t.detected_language} | {t.text[:35]}..."
                         for t in pending
                     ]
                     return gr.Dropdown(choices=options, value=options[0] if options else None)
@@ -165,16 +248,15 @@ def create_gradio_ui() -> gr.Blocks:
                     if not item:
                         return "*Ticket not found.*", "", ""
 
-                    policies_md = "\n".join([f"- **{p.get('source', 'Policy')}:** {p.get('title', '')}" for p in item.retrieved_policies])
                     info_md = (
-                        f"#### Ticket: `{item.ticket_id}` (Customer: `{item.customer_id}`)\n"
+                        f"#### Escalated Ticket: `{item.ticket_id}` (Customer: `{item.customer_id}`)\n"
                         f"* **Severity Priority:** **{item.priority}**\n"
                         f"* **Message:** \"{item.text}\"\n"
-                        f"* **Action:** `{item.action}` | **Confidence:** `{item.confidence:.2f}`\n"
+                        f"* **Department:** `{item.department.upper()}`\n"
+                        f"* **Urgency Score:** `{item.urgency_score:.1f}/3`\n"
+                        f"* **Churn Risk:** `{item.churn_risk:.1%}`\n"
                         f"* **Detected Language:** `{item.detected_language}`\n"
-                        f"* **Amount:** `${item.amount:.2f}`" if item.amount else "* **Amount:** N/A\n"
-                        f"* **Interruption Reason:** {item.reason}\n\n"
-                        f"**Grounding Policies Retrieved:**\n{policies_md}"
+                        f"* **Escalation Reason:** {item.reason}"
                     )
                     return info_md, item.draft_reply or "", ""
 
@@ -194,20 +276,12 @@ def create_gradio_ui() -> gr.Blocks:
                     )
 
                     res = await workflow_service.review_ticket(item.ticket_id, rev_req)
-                    verdict_str = "APPROVED & EXECUTED" if approved else "REJECTED & DENIED"
-
-                    slack_info = "N/A"
-                    if res.tool_result and isinstance(res.tool_result, dict):
-                        data = res.tool_result.get("data", {})
-                        if isinstance(data, dict):
-                            slack_info = data.get("slack_alert", "SENT")
+                    verdict_str = "APPROVED & DISPATCHED" if approved else "REJECTED & CLOSED"
 
                     return (
                         f"### ✅ Verdict [{verdict_str}] Recorded for Ticket `{item.ticket_id}`\n"
                         f"* **Priority:** `{res.priority}`\n"
-                        f"* **Action:** `{res.decision_action}`\n"
-                        f"* **Tool Status:** `{res.tool_result.get('status') if res.tool_result else 'DENIED'}`\n"
-                        f"* **Webhook Dispatch:** `{slack_info}`\n"
+                        f"* **Department:** `{res.department}`\n"
                         f"* **Final Reply:** \"{res.reply}\""
                     )
 

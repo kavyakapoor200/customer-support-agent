@@ -44,6 +44,13 @@ class TicketWorkflowService:
         state = await self.graph.aget_state(config)
         values = state.values
 
+        priority = values.get("priority", "P2")
+        dept = values.get("department", "general")
+        urgency = values.get("urgency_score", 0.0)
+        churn = values.get("churn_risk_probability", 0.0)
+        triage_action = values.get("triage_action", "AUTOMATED_LLM_RESPONSE")
+        lang = values.get("detected_language", "english")
+
         # Check if paused at human review interrupt
         if state.next and "human_review" in state.next:
             interrupt_val = {}
@@ -54,42 +61,36 @@ class TicketWorkflowService:
                 ticket_id=ticket_id,
                 customer_id=request.customer_id,
                 text=request.text,
-                detected_language=values.get("detected_language", "english"),
-                action=values.get("decision_action", "unknown"),
-                confidence=values.get("decision_confidence", 0.0),
+                detected_language=lang,
+                priority=priority,
+                department=dept,
+                urgency_score=urgency,
+                churn_risk=churn,
+                action=values.get("decision_action", dept),
+                confidence=values.get("decision_confidence", 1.0),
                 amount=values.get("extracted_amount"),
-                reason=interrupt_val.get("reason", values.get("reviewer_notes", "Requires human review")),
-                priority=values.get("priority", "P2"),
+                reason=interrupt_val.get("reason", values.get("reviewer_notes", "P0 Escalation")),
                 draft_reply=values.get("draft_reply"),
                 retrieved_policies=values.get("retrieved_policies", []),
             )
             self._pending_tickets[ticket_id] = pending_item
 
-            lang = values.get("detected_language", "english")
-            if lang == "hindi":
-                review_reply = "नमस्ते, आपके अनुरोध के लिए सुपरवाइजर सत्यापन की आवश्यकता है। इसे हमारे सपोर्ट डेस्क पर भेज दिया गया है, जल्द ही समाधान मिलेगा।"
-            elif lang == "hinglish":
-                review_reply = "Hi, aapki request ke liye supervisor verification ki zaroorat hai. Humne isse support desk par forward kar diya hai, jald update milega."
-            elif lang == "french":
-                review_reply = "Votre demande nécessite la validation d'un superviseur et a été transmise à notre équipe de support."
-            elif lang == "spanish":
-                review_reply = "Su solicitud requiere verificación por parte de un supervisor y ha sido transferida a nuestro equipo de soporte."
-            elif lang == "german":
-                review_reply = "Ihre Anfrage erfordert eine Überprüfung durch einen Supervisor und wurde an unser Support-Team weitergeleitet."
-            else:
-                review_reply = "Your request requires supervisor verification and has been routed to our human support desk."
-
             return TicketResponse(
                 ticket_id=ticket_id,
                 status="needs_review",
-                decision_action=values.get("decision_action", "unknown"),
-                decision_confidence=values.get("decision_confidence", 0.0),
-                reply=review_reply,
+                priority=priority,
+                department=dept,
+                urgency_score=urgency,
+                urgency_description=values.get("urgency_description"),
+                churn_risk_probability=churn,
+                triage_action=triage_action,
+                decision_action=values.get("decision_action", dept),
+                decision_confidence=values.get("decision_confidence", 1.0),
+                reply=values.get("draft_reply") or "Your ticket has been escalated to our human specialist desk.",
                 tool_result=None,
                 gating_outcome=values.get("gating_outcome", "human_review"),
                 detected_language=lang,
                 requires_human_review=True,
-                priority=values.get("priority", "P2"),
                 trajectory=values.get("trajectory", []),
             )
 
@@ -97,14 +98,19 @@ class TicketWorkflowService:
         return TicketResponse(
             ticket_id=ticket_id,
             status="completed",
-            decision_action=values.get("decision_action", "unknown"),
-            decision_confidence=values.get("decision_confidence", 0.0),
+            priority=priority,
+            department=dept,
+            urgency_score=urgency,
+            urgency_description=values.get("urgency_description"),
+            churn_risk_probability=churn,
+            triage_action=triage_action,
+            decision_action=values.get("decision_action", dept),
+            decision_confidence=values.get("decision_confidence", 1.0),
             reply=values.get("draft_reply"),
             tool_result=values.get("tool_result"),
             gating_outcome=values.get("gating_outcome", "auto_execute"),
-            detected_language=values.get("detected_language", "english"),
+            detected_language=lang,
             requires_human_review=False,
-            priority=values.get("priority", "P2"),
             trajectory=values.get("trajectory", []),
         )
 
@@ -127,20 +133,27 @@ class TicketWorkflowService:
         final_state = await self.graph.aget_state(config)
         values = final_state.values
 
-        # Remove from pending queue
         self._pending_tickets.pop(ticket_id, None)
+
+        dept = values.get("department", "general")
+        priority = values.get("priority", "P0")
 
         return TicketResponse(
             ticket_id=ticket_id,
             status="completed",
-            decision_action=values.get("decision_action", "unknown"),
-            decision_confidence=values.get("decision_confidence", 0.0),
+            priority=priority,
+            department=dept,
+            urgency_score=values.get("urgency_score"),
+            urgency_description=values.get("urgency_description"),
+            churn_risk_probability=values.get("churn_risk_probability"),
+            triage_action=values.get("triage_action"),
+            decision_action=values.get("decision_action", dept),
+            decision_confidence=values.get("decision_confidence", 1.0),
             reply=values.get("draft_reply"),
             tool_result=values.get("tool_result"),
             gating_outcome=values.get("gating_outcome", "human_review"),
             detected_language=values.get("detected_language", "english"),
             requires_human_review=False,
-            priority=values.get("priority", "P2"),
             trajectory=values.get("trajectory", []),
         )
 
