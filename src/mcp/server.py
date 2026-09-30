@@ -6,6 +6,7 @@ from mcp.server.mcpserver import MCPServer
 
 from src.cognition.gating import evaluate_gating
 from src.decision_engine.factory import get_decision_engine
+from src.kb.store import PolicyStore
 from src.tools.mock_tools import cancel_subscription, escalate_to_team, execute_refund
 
 # Compliant MCPServer instance
@@ -13,16 +14,36 @@ mcp_server = MCPServer(name="customer-support-interface-mcp")
 
 
 @mcp_server.tool()
-async def classify_ticket(text: str) -> dict[str, Any]:
+async def classify_ticket(text: str = "", ticket_text: str = "") -> dict[str, Any]:
     """Classifies a customer ticket text and returns calibrated decision probabilities.
 
     Args:
         text: Customer support inquiry or message.
+        ticket_text: Optional alias for text.
     """
-    engine = get_decision_engine("mock")
+    input_text = text or ticket_text
+    engine = get_decision_engine()
     candidates = ["refund", "cancel_subscription", "billing_dispute", "account_escalation", "general_inquiry"]
-    decision = await engine.decide(text, candidates)
+    decision = await engine.decide(input_text, candidates)
     return decision.model_dump()
+
+
+@mcp_server.tool()
+def search_policy_kb(query: str, limit: int = 3) -> list[dict[str, Any]]:
+    """Searches company customer support policy documents in the Qdrant knowledge base.
+
+    Args:
+        query: Search query (e.g. 'Can customer get refund after 14 days?').
+        limit: Maximum number of policy snippets to retrieve (default: 3).
+    """
+    try:
+        store = PolicyStore()
+        results = store.search_policies(query=query, limit=limit)
+    except Exception:
+        store = PolicyStore(url=":memory:")
+        store.ingest_markdown_policies("data/policies")
+        results = store.search_policies(query=query, limit=limit)
+    return [r.model_dump() for r in results]
 
 
 @mcp_server.tool()

@@ -12,7 +12,15 @@ async def test_mcp_tools_listing():
     tools = await mcp_server.list_tools()
     names = [t.name for t in tools]
 
-    expected = ["classify_ticket", "verify_reply", "gate_action", "refund_action", "cancel_subscription_action", "escalate_ticket_action"]
+    expected = [
+        "classify_ticket",
+        "search_policy_kb",
+        "verify_reply",
+        "gate_action",
+        "refund_action",
+        "cancel_subscription_action",
+        "escalate_ticket_action",
+    ]
     for exp in expected:
         assert exp in names, f"Expected tool '{exp}' not found in MCP server."
 
@@ -66,3 +74,16 @@ async def test_mcp_gate_action_tool():
     data_high = json.loads(res_high.content[0].text)
     assert data_high["outcome"] == "human_review"
     assert data_high["requires_human"] is True
+
+
+@pytest.mark.asyncio
+async def test_mcp_search_policy_kb_tool():
+    """Validates execution of search_policy_kb MCP tool."""
+    res = await mcp_server.call_tool(
+        "search_policy_kb",
+        {"query": "Can customer get refund after 14 days?", "limit": 2}
+    )
+    items = [json.loads(c.text) for c in res.content]
+    assert len(items) > 0
+    assert "policy_id" in items[0]
+

@@ -16,7 +16,6 @@ license: mit
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![LangGraph](https://img.shields.io/badge/Orchestration-LangGraph-orange.svg)](https://github.com/langchain-ai/langgraph)
-[![MCP Compliant](https://img.shields.io/badge/Protocol-MCP%202.0-purple.svg)](https://modelcontextprotocol.io)
 [![OpenTelemetry](https://img.shields.io/badge/Observability-OpenTelemetry-green.svg)](https://opentelemetry.io)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
@@ -34,7 +33,7 @@ An enterprise-grade, calibrated **Customer Support Agent with Deterministic Gati
 - [System Architecture](#-system-architecture)
 - [Key Benchmark Results](#-key-benchmark-results)
 - [Interactive Portals & Interfaces](#-interactive-portals--interfaces)
-- [Model Context Protocol (MCP) Integration](#-model-context-protocol-mcp-integration)
+- [Operational Tools & Execution](#-operational-tools--execution)
 - [Slack Webhook P0 Escalation](#-slack-webhook-p0-escalation)
 - [Quickstart (Under 2 Minutes)](#-quickstart-under-2-minutes)
 - [Project Directory Structure](#-project-directory-structure)
@@ -92,7 +91,7 @@ Our architecture decouples **cognition and scoring** from **action execution**:
              │                                                     │
              ▼                                                     ▼
      [Auto-Execute Tool]                                 [LangGraph Interrupt]
-(MCP Standard Refund/Cancel)                                       │
+(Deterministic Refund/Cancel)                                       │
              │                                                     ▼
              │                                          [Pending Review Queue]
              │                                                     │
@@ -117,11 +116,11 @@ Our architecture decouples **cognition and scoring** from **action execution**:
 |---|---|---|
 | **7. Control / Ops** | Distributed tracing, audit logs, calibration evals, CI pipeline | OpenTelemetry, Jaeger, Pytest, GitHub Actions |
 | **6. Inference** | Calibrated probability scoring & optional LLM synthesis | Kev-0.8B, Jev, MockBackend, LiteLLM / Groq |
-| **5. Tools / Env** | Vector policy retrieval & sandboxed operational actions | Qdrant (in-memory/Docker), MCP Server, Slack Webhooks |
+| **5. Tools / Env** | Vector policy retrieval & sandboxed operational actions | Qdrant (in-memory/Docker), Python Tool Handlers, Slack Webhooks |
 | **4. Memory / State** | Checkpointed workflow state & audit trail | PostgreSQL (AsyncPostgresSaver) / MemorySaver |
 | **3. Cognition** | Threshold evaluation & policy compliance checks | `src/cognition/gating.py` (Single-owner code gate) |
 | **2. Orchestration** | Cyclic graph execution & Human-in-the-Loop halts | LangGraph StateGraph (`interrupt()`) |
-| **1. Interface** | REST intake, MCP server, and Dual-Portal UI | FastAPI, Gradio (`/ui`), MCP SDK (JSON-RPC) |
+| **1. Interface** | REST intake, FastAPI endpoints, and Dual-Portal UI | FastAPI, Gradio (`/ui`), Pydantic |
 
 ---
 
@@ -207,53 +206,18 @@ Evaluated on **100 synthetic SaaS support tickets** (50 English, 35 Hinglish, 15
 
 ---
 
-## 🔌 Model Context Protocol (MCP) Integration
+## 🛠️ Operational Tools & Direct Execution
 
-The project exposes compliant Model Context Protocol tools over both standard I/O (JSON-RPC) and HTTP.
+> ℹ️ **Design Note (No Model Context Protocol / MCP):** This project **does not use Model Context Protocol (MCP)**. Tool execution is handled via **direct deterministic Python tool calling** inside the LangGraph state machine. There is no external MCP server/client protocol layer or protocol overhead.
 
-### Available MCP Tools
-- `classify_ticket(text: str)`: Returns System 1 probability distribution over support actions.
-- `verify_reply(draft: str, policy_snippet: str)`: Verifies response alignment against retrieved policy.
-- `gate_action(action: str, confidence: float, amount: float | None)`: Deterministically returns `auto_execute`, `human_review`, or `deny`.
-- `execute_refund(ticket_id: str, customer_id: str, amount: float, reason: str)`: Compliant refund tool with audit hashing.
-- `cancel_subscription(ticket_id: str, customer_id: str, immediate: bool, feedback: str)`: Subscription cancellation handler.
-- `escalate_to_team(ticket_id: str, customer_id: str, department: str, priority: str, reason: str)`: P0/P1 escalation dispatcher.
+### Sandboxed Operational Actions (`src/tools/mock_tools.py`)
+All operational mutations are executed as strongly typed, isolated Python handlers with audit trail generation:
 
-### Connecting to Claude Desktop
-Add to your `claude_desktop_config.json` (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
-
-```json
-{
-  "mcpServers": {
-    "customer-support-agent": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/path/to/customer-support-agent",
-        "run",
-        "python",
-        "-m",
-        "src.tools.mcp_server"
-      ]
-    }
-  }
-}
-```
-
-### Connecting to Cursor
-Add to your `.cursor/mcp.json` or Cursor Settings:
-
-```json
-{
-  "mcpServers": {
-    "customer-support": {
-      "command": "uv",
-      "args": ["run", "python", "-m", "src.tools.mcp_server"],
-      "cwd": "/path/to/customer-support-agent"
-    }
-  }
-}
-```
+- **`execute_refund(ticket_id, amount_usd, reason)`**: Executes financial reimbursement with transaction UUID and audit log entry. Strictly validates that `amount_usd > 0.00` and matches policy bounds.
+- **`cancel_subscription(ticket_id, customer_id, immediate)`**: Handles recurring SaaS subscription termination, supporting either immediate cutoff or end-of-billing-cycle scheduling.
+- **`escalate_to_team(ticket_id, target_team, priority, notes)`**: Routes inquiries to specialized teams (SecOps, BillingOps, Tier-2). When priority is `P0`, dispatches immediate alerts.
+- **`search_policies(query, limit)`**: Semantic vector retrieval over markdown SLA policies stored in Qdrant (`src/kb/store.py`).
+- **`verify_reply(draft, policy_snippet)`**: Audits generated response grounding and guarantees SLA invariant adherence before customer delivery.
 
 ---
 
@@ -336,9 +300,8 @@ uv run python -m eval.generate_report
 │   ├── core/                # Pydantic settings & threshold schemas
 │   ├── decision_engine/     # Model adapters (Kev, Jev, Mock, Groq Baseline)
 │   ├── kb/                  # Qdrant vector store & policy ingestion
-│   ├── mcp/                 # High-level MCP server interfaces
 │   ├── telemetry/           # OpenTelemetry SDK tracer initialization
-│   ├── tools/               # Compliant MCP operational tools (Refund, Cancel, Escalate)
+│   ├── tools/               # Sandboxed operational tools (Refund, Cancel, Escalate)
 │   ├── ui/                  # Gradio Dual-Portal application (mounted at /ui)
 │   └── workflow/            # LangGraph StateGraph, nodes, and interrupt lifecycle
 ├── tests/                   # Complete pytest suite across all layers
