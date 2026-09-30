@@ -1,4 +1,4 @@
-"""Typed data models and audit schemas for MCP tools."""
+"""Typed data models and audit schemas for sandboxed operational tools."""
 from datetime import UTC, datetime
 from typing import Any
 

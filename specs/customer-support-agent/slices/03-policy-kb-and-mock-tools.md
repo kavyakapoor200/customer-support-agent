@@ -1,4 +1,4 @@
-# Slice 03: Policy KB (Qdrant) & Mock MCP Tools
+# Slice 03: Policy KB (Qdrant) & Sandboxed Operational Tools
 
 ## 1. Contract Unlocked
 Implements vector search over company support policies using Qdrant (supporting both local Docker and embedded in-memory mode) and establishes sandbox mock tools for safe side-effect simulation.

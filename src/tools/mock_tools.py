@@ -11,7 +11,13 @@ def _generate_tx_hash(tool: str, ticket_id: str, params: dict) -> str:
     return f"tx_{hashlib.sha256(raw.encode('utf-8')).hexdigest()[:12]}"
 
 
-def execute_refund(ticket_id: str, amount_usd: float, reason: str) -> ToolResult:
+def execute_refund(
+    ticket_id: str,
+    amount_usd: float,
+    reason: str,
+    max_amount_usd: float | None = None,
+    authorized_by_human: bool = False,
+) -> ToolResult:
     """Executes a financial refund against a customer ticket."""
     if amount_usd <= 0.0:
         return ToolResult(
@@ -20,6 +26,24 @@ def execute_refund(ticket_id: str, amount_usd: float, reason: str) -> ToolResult
             transaction_id="tx_failed",
             audit_entry={},
             error=f"Refund amount must be strictly greater than $0.00, got: {amount_usd}",
+        )
+
+    if max_amount_usd is None:
+        try:
+            from src.core.thresholds import load_thresholds
+
+            policy = load_thresholds().get_policy("refund")
+            max_amount_usd = policy.max_auto_amount_usd
+        except Exception:
+            max_amount_usd = 50.0
+
+    if not authorized_by_human and max_amount_usd > 0.0 and amount_usd > max_amount_usd:
+        return ToolResult(
+            success=False,
+            tool_name="refund",
+            transaction_id="tx_failed",
+            audit_entry={},
+            error=f"Refund amount ${amount_usd:.2f} exceeds configured maximum ceiling of ${max_amount_usd:.2f}",
         )
 
     tx_hash = _generate_tx_hash("refund", ticket_id, {"amount": amount_usd, "reason": reason})

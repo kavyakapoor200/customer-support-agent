@@ -67,7 +67,7 @@ This document audits the architectural choices and implementation shortcuts made
 - **When:** Slice 03 (`src/tools/mock_tools.py`)
 - **The Choice:** Operational tools (`execute_refund`, `cancel_subscription`) generate realistic transaction hashes (`tx_...`) and audit logs in-memory rather than connecting to live Stripe/Chargebee billing APIs.
   - _Concrete Walked Scenario:_ An approved refund outputs `{"success": true, "transaction_id": "tx_519983620149", ...}`. No real bank accounts are debited.
-  - _Why Sound:_ Enterprise customer support prototypes should never execute real financial debits without a sandbox Stripe secret key. The MCP tool interfaces are standard and can be swapped for real Stripe SDK calls with zero changes to the LangGraph workflow.
+  - _Why Sound:_ Enterprise customer support prototypes should never execute real financial debits without a sandbox Stripe secret key. The operational tool interfaces are standard Python functions and can be swapped for real Stripe SDK calls with zero changes to the LangGraph workflow.
 - **Verdict:** **SOUND** (Confidence: **HIGH**).
 
 ### Choice 06: MemorySaver Fallback for LangGraph Interrupts

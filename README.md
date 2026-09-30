@@ -208,16 +208,16 @@ Evaluated on **100 synthetic SaaS support tickets** (50 English, 35 Hinglish, 15
 
 ## 🛠️ Operational Tools & Direct Execution
 
-> ℹ️ **Design Note (No Model Context Protocol / MCP):** This project **does not use Model Context Protocol (MCP)**. Tool execution is handled via **direct deterministic Python tool calling** inside the LangGraph state machine. There is no external MCP server/client protocol layer or protocol overhead.
+> **Design Note:** Operational tools are executed via **direct deterministic Python tool calling** inside the LangGraph state machine with strict single-owner code gating and audit trail generation.
 
 ### Sandboxed Operational Actions (`src/tools/mock_tools.py`)
 All operational mutations are executed as strongly typed, isolated Python handlers with audit trail generation:
 
-- **`execute_refund(ticket_id, amount_usd, reason)`**: Executes financial reimbursement with transaction UUID and audit log entry. Strictly validates that `amount_usd > 0.00` and matches policy bounds.
+- **`execute_refund(ticket_id, amount_usd, reason)`**: Executes financial reimbursement with transaction UUID and audit log entry. Validates that `amount_usd > 0.00` and enforces a hard ceiling (rejecting amounts above `$50.00` as configured in `config/thresholds.yaml`).
 - **`cancel_subscription(ticket_id, customer_id, immediate)`**: Handles recurring SaaS subscription termination, supporting either immediate cutoff or end-of-billing-cycle scheduling.
-- **`escalate_to_team(ticket_id, target_team, priority, notes)`**: Routes inquiries to specialized teams (SecOps, BillingOps, Tier-2). When priority is `P0`, dispatches immediate alerts.
+- **`escalate_to_team(ticket_id, target_team, priority, notes)`**: Routes inquiries to specialized teams (SecOps, BillingOps, Tier-2). When priority is `P0`, dispatches immediate alerts via Slack webhook.
 - **`search_policies(query, limit)`**: Semantic vector retrieval over markdown SLA policies stored in Qdrant (`src/kb/store.py`).
-- **`verify_reply(draft, policy_snippet)`**: Audits generated response grounding and guarantees SLA invariant adherence before customer delivery.
+- **`verify_reply(draft, policy_snippet)`**: Audits draft responses against policy SLA statements (`src/cognition/verify.py`), flagging unauthorized promises of instant refunds when standard 3-5 business days apply.
 
 ---
 

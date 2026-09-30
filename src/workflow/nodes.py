@@ -340,7 +340,13 @@ async def execute_node(state: AgentState) -> dict[str, Any]:
         final_action = "denied"
         tool_result = {"success": False, "status": "DENIED", "reason": state.get("reviewer_notes", "Rejection")}
     elif action in ("refund", "billing_dispute"):
-        res = execute_refund(ticket_id, amount, "Refund processed via support flow")
+        is_human_approved = (status == "approved")
+        res = execute_refund(
+            ticket_id,
+            amount,
+            "Refund processed via support flow",
+            authorized_by_human=is_human_approved,
+        )
         final_action = "refund"
         tool_result = res.model_dump()
     elif action == "cancel_subscription":

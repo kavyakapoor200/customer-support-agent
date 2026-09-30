@@ -28,8 +28,9 @@ async def lifespan(app: FastAPI):
         from src.kb.store import PolicyStore
         store = PolicyStore()
         store.ingest_markdown_policies("data/policies")
-    except Exception:
-        pass
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning("Policy ingestion during startup skipped: %s", exc)
     yield
 
 

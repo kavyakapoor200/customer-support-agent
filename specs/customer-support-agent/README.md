@@ -20,9 +20,9 @@
 ### Global Slice Checklist
 - [x] **Slice 01: Project Skeleton, Config & Docker Foundation** (`01-project-skeleton-and-config.md`)
 - [x] **Slice 02: DecisionEngine Adapter (Kev, Jev, Mock, LLM Baseline)** (`02-decision-engine-adapter.md`)
-- [x] **Slice 03: Policy KB (Qdrant) & Mock MCP Tools** (`03-policy-kb-and-mock-tools.md`)
+- [x] **Slice 03: Policy KB (Qdrant) & Sandboxed Operational Tools** (`03-policy-kb-and-mock-tools.md`)
 - [x] **Slice 04: LangGraph State Machine & Human-In-The-Loop Gating** (`04-langgraph-state-machine-hitl.md`)
-- [x] **Slice 05: Interfaces (FastAPI, MCP Server & Gradio Dual-Portal)** (`05-fastapi-mcp-and-gradio-ui.md`)
+- [x] **Slice 05: Interfaces (FastAPI & Gradio Dual-Portal)** (`05-fastapi-and-gradio-ui.md`)
 - [x] **Slice 06: Synthetic Eval Harness, Benchmarks & GitHub Actions CI** (`06-eval-harness-and-ci.md`)
 
 ---
@@ -58,7 +58,7 @@ An enterprise-grade, calibrated **Customer Support Agent with Deterministic Gati
 └─────────────────────────────────────────────────────────────┘
 ┌─ 5. TOOLS / ENVIRONMENT ───────────────────────────────────┐
 │ Qdrant local vector store (policy KB in data/policies/*.md)│
-│ Mock MCP sandbox tools: refund, cancel, escalate           │
+│ Sandboxed operational tools: refund, cancel, escalate      │
 └─────────────────────────────────────────────────────────────┘
 ┌─ 4. MEMORY / STATE ────────────────────────────────────────┐
 │ PostgreSQL (Local Docker default / Supabase 1-click env)   │
@@ -78,7 +78,7 @@ An enterprise-grade, calibrated **Customer Support Agent with Deterministic Gati
 └─────────────────────────────────────────────────────────────┘
 ┌─ 1. INTERFACE / CHANNEL ───────────────────────────────────┐
 │ FastAPI intake endpoints (/api/v1/tickets, /api/v1/resume) │
-│ MCP Server (classify_ticket, verify_reply, gate_action)     │
+│ Review queue and state management endpoints                │
 │ Gradio Dual-Tab Portal mounted at /ui                      │
 │   ├── Tab 1: Customer Chatbot                              │
 │   └── Tab 2: Agent Review Desk                             │

@@ -1,7 +1,7 @@
-# Slice 05: Interfaces (FastAPI, MCP Server & Gradio Dual-Portal)
+# Slice 05: Interfaces (FastAPI & Gradio Dual-Portal)
 
 ## 1. Contract Unlocked
-Exposes the multi-channel interface layer: production REST API (FastAPI), Model Context Protocol server (MCP), and interactive Gradio Dual-Portal mounted at `/ui` for customer chat and agent human-in-the-loop review.
+Exposes the multi-channel interface layer: production REST API (FastAPI) and interactive Gradio Dual-Portal mounted at `/ui` for customer chat and agent human-in-the-loop review.
 
 ## 2. API Seam & Module Ownership
 * **Module:** `src/api/` and `src/ui/`
@@ -10,11 +10,6 @@ Exposes the multi-channel interface layer: production REST API (FastAPI), Model 
   * `GET /api/v1/tickets/pending`: Lists all tickets currently paused at the human review interrupt.
   * `POST /api/v1/tickets/{ticket_id}/review`: Resumes graph execution with reviewer approval, rejection, or edited response.
   * `GET /health`: Healthcheck endpoint reporting readiness of PostgreSQL, Qdrant, and DecisionEngine.
-* **MCP Server (`src/mcp/server.py`):**
-  * Standard MCP protocol server exposing:
-    * `classify_ticket(text: str) -> dict`
-    * `verify_reply(draft: str, policy_snippet: str) -> dict`
-    * `gate_action(action: str, confidence: float, amount: float | None) -> dict`
 * **Gradio Dual-Portal (`src/ui/gradio_app.py`):**
   * Mounted at `/ui` on the FastAPI server using `gr.mount_gradio_app`.
   * **Tab 1: Customer Support Portal**
@@ -41,9 +36,7 @@ Exposes the multi-channel interface layer: production REST API (FastAPI), Model 
   * Verifies auto-resolve returns HTTP 200 with final response.
   * Verifies interrupt returns `status: "needs_review"` and appears in `/api/v1/tickets/pending`.
   * Verifies `POST /api/v1/tickets/{id}/review` resumes execution and transitions status to `completed`.
-* `tests/test_mcp.py`:
-  * Tests MCP tool schemas and local invocations.
-* Command gate: `pytest tests/test_api.py tests/test_mcp.py` passes 100%.
+* Command gate: `pytest tests/test_api.py` passes 100%.
 
 ## 5. Delegated Implementer Discretion
 * CSS styling and layout spacing inside Gradio blocks.

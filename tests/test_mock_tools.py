@@ -1,12 +1,9 @@
-"""Tests for tools and compliant MCP server."""
-import pytest
-
-from src.tools.mcp_server import mcp_server
+"""Tests for sandboxed operational tools."""
 from src.tools.mock_tools import cancel_subscription, escalate_to_team, execute_refund
 
 
 def test_refund_tool_valid():
-    """Validates successful refund execution with valid amount and audit log."""
+    """Validates successful refund execution with valid amount within policy bounds."""
     res = execute_refund(ticket_id="TK-101", amount_usd=45.00, reason="Within 14-day SLA")
     assert res.success is True
     assert res.tool_name == "refund"
@@ -24,6 +21,14 @@ def test_refund_tool_invalid_amount():
 
     res_zero = execute_refund(ticket_id="TK-103", amount_usd=0.00, reason="Zero amount")
     assert res_zero.success is False
+
+
+def test_refund_tool_exceeds_ceiling():
+    """Validates that refund amounts exceeding policy ceiling ($50.00) are rejected."""
+    res = execute_refund(ticket_id="TK-104", amount_usd=75.00, reason="Excessive refund request")
+    assert res.success is False
+    assert "exceeds configured maximum ceiling" in res.error
+    assert res.tool_name == "refund"
 
 
 def test_cancel_subscription_tool():
@@ -51,25 +56,3 @@ def test_escalate_to_team_tool():
     assert res_invalid.success is False
     assert "Invalid priority" in res_invalid.error
 
-
-@pytest.mark.asyncio
-async def test_mcp_server_protocol_execution():
-    """Validates that the official MCPServer registers tools and executes them via protocol."""
-    tools = await mcp_server.list_tools()
-    tool_names = [t.name for t in tools]
-    assert "refund_action" in tool_names
-    assert "cancel_subscription_action" in tool_names
-    assert "escalate_ticket_action" in tool_names
-    assert "search_policy_kb" in tool_names
-    assert "classify_ticket" in tool_names
-
-    # Call tool via standard MCP server API
-    call_res = await mcp_server.call_tool(
-        "refund_action",
-        {"ticket_id": "TK-MCP-99", "amount_usd": 35.50, "reason": "MCP call test"}
-    )
-    assert not call_res.is_error
-    assert len(call_res.content) > 0
-    text_content = call_res.content[0].text
-    assert '"success": true' in text_content
-    assert '"refund_amount_usd": 35.5' in text_content

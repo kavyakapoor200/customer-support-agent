@@ -106,16 +106,17 @@ def evaluate_triage_gating(
     """Evaluates System 1 decision primitives against policy rules to determine auto-execution vs human review."""
     threshold_config = config or load_thresholds()
 
-    # 1. Financial limit safety rule (> $50 requires supervisor review)
-    if amount_usd is not None and amount_usd > 50.0:
+    # 1. Financial limit safety rule (exceeding policy max_auto_amount_usd requires supervisor review)
+    refund_ceiling = threshold_config.get_policy("refund").max_auto_amount_usd or 50.0
+    if amount_usd is not None and amount_usd > refund_ceiling:
         return GatingDecision(
             outcome="human_review",
             rationale=(
                 f"[P1] Requested amount ${amount_usd:.2f} exceeds auto-approval ceiling "
-                f"($50.00); routed to supervisor desk for human sign-off."
+                f"(${refund_ceiling:.2f}); routed to supervisor desk for human sign-off."
             ),
             requires_human=True,
-            threshold_applied=50.0,
+            threshold_applied=refund_ceiling,
             priority="P1",
         )
 

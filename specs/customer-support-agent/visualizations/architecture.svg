@@ -242,7 +242,7 @@
     <text x="14" y="114" font-size="11" font-weight="600" fill="#34d399">• verify_node:</text>
     <text x="24" y="130" font-size="11" fill="#cbd5e1">Policy invariant verification</text>
 
-    <text x="14" y="150" font-size="11" font-weight="600" fill="#34d399">• execute_node (Mock MCP):</text>
+    <text x="14" y="150" font-size="11" font-weight="600" fill="#34d399">• execute_node (Tools):</text>
     <text x="24" y="166" font-size="11" fill="#cbd5e1">execute_refund(amount, cust_id)</text>
     <text x="24" y="182" font-size="11" font-family="monospace" fill="#6ee7b7">tx_hash: "tx_9481920412"</text>
 
